@@ -1,0 +1,232 @@
+<template>
+  <div class="box">
+      <h3>磁盘使用情况</h3>
+      <div class="container">
+          <div class="wrapper" v-for="(item,index) in datas" :key="index"> 
+              <p>{{item.diskName}}</p>
+              <div class="chartsDom" :id="'chartDom'+index">{{index}}</div>
+              <ul class="lines">
+                  <li><i></i>磁盘空间<span>+ {{item.resData[1].value}}</span></li>
+                  <li><i></i>已用<span>+ {{item.resData[3].value}}</span></li>
+                  <li><i></i>未用<span>+ {{item.resData[0].value}}</span></li>
+              </ul>
+          </div>
+       </div>
+       <h3>内存使用情况</h3>
+       <div class="container2">
+         <div id="charts2"></div>
+         <ul class="lines">
+                  <li><i></i>内存大小<span>+ {{rs.total}}</span></li>
+                  <li><i></i>已用<span>+ {{rs.used}}</span></li>
+                  <li><i></i>未用<span>+ {{rs.free}}</span></li>
+         </ul>
+       </div>
+  </div>
+</template>
+<script>
+export default {
+  components: {},
+  data() {
+    return {
+       datas:[],
+       rs:{},
+       timer:null, //定时器名称
+    };
+  },
+  mounted(){
+    this.getDiskInfo();
+    this.getMemoryInfo();
+    this.timer = setInterval(() =>{ 
+         this.datas.length=0;
+         this.rs={};
+		     this.getDiskInfo();
+         this.getMemoryInfo();
+         
+		},1000*60);  
+  },
+  methods: {
+    getDiskInfo(){
+      let that=this;
+      that.$myHttp.get('systemMonitor/getDiskInfo').then((res) => {
+          var data=res.result;
+          for(var i=0;i<data.length;i++){
+            that.datas.push(
+              {
+                diskName:data[i].diskName,
+                driverLetter:data[i].driverLetter,
+                resData:[
+                  {
+                    name:"free",
+                    value:data[i].free
+                  },
+                  {
+                    name:"total",
+                    value:data[i].total
+                  },
+                  {
+                    name:"useRate",
+                    value:data[i].useRate
+                  },
+                  {
+                    name:"used",
+                    value:data[i].used
+                  },
+                ]
+              }
+            )
+          }
+      }).then(()=>{
+        this.$nextTick(that.drawPie)
+      });
+    },
+    drawPie(){
+      for(var i = 0;i < this.datas.length;i++ ){
+         var id='chartDom'+i;
+          var myChart = this.$echarts.init(document.getElementById(id));
+          var useRate=this.datas[i].resData[2].value;
+          var chartData=[{
+              name:"已用",
+              value:parseFloat(this.datas[i].resData[3].value).toFixed(2)
+            },
+            {
+              name:"未用",
+              value:parseFloat(this.datas[i].resData[0].value).toFixed(2)
+            }
+          ];
+          var tooltip={};
+          myChart.setOption({
+              color: ["#10c4B5", "#005562"],
+              tooltip: {
+                     trigger: 'item',
+                     formatter: function (params) {
+                        return params.name + " : " + params.value+"GB";
+                     }
+              },
+              title: {
+                    text:useRate+"%",
+                    left: 'center',
+                    textStyle: {
+                      color: '#767676',
+                      fontSize: 14,
+                    },
+                    top: '44.5%',
+                    left: '48%',
+                    textAlign: 'center',
+              },
+              series: [
+                      {
+                          type: 'pie',
+                          radius: ['40%', '70%'],
+                          avoidLabelOverlap: false,
+                          animationType: 'scale',
+                          animationEasing: 'elasticOut',
+                          animationDelay: function (idx) {
+                              return Math.random() * 200;
+                          },
+                          label: {
+                            show: false,
+                            position: 'center'
+                          },
+                          emphasis: {
+                            label: {
+                              show: false,
+                            }
+                          },
+                          labelLine: {
+                            show: false
+                          },
+                          data: chartData// 渲染每个图表对应的数据
+                      }
+              ]
+          })
+      }
+    },
+    getMemoryInfo(){
+      let that=this;
+      that.$myHttp.get('systemMonitor/getMemoryInfo').then((res) => {
+          that.rs=res.result[0];
+      }).then(()=>{
+          that.drawPie2();
+      });
+    },
+    drawPie2(){
+        // 基于准备好的dom，初始化echarts实例
+        let myChart = this.$echarts.init(document.getElementById('charts2'));
+        let chartData=[{
+              name:"已用",
+              value:parseFloat(this.rs.used).toFixed(2)
+            },{
+              name:"未用",
+              value:parseFloat(this.rs.free).toFixed(2)
+            }];
+        // 绘制图表
+        myChart.setOption({
+            color: ["#10c4B5", "#005562"],
+            tooltip: {
+                     trigger: 'item',
+                     formatter: function (params) {
+                        return params.name + " : " + params.value+"GB";
+                     }
+              },
+              title: {
+                    text: this.rs.useRate+"%",
+                    left: 'center',
+                    textStyle: {
+                      color: '#767676',
+                      fontSize: 14,
+                    },
+                    top: '44.5%',
+                    left: '48%',
+                    textAlign: 'center',
+              },
+              series: [
+                      {
+                          type: 'pie',
+                          radius: ['40%', '70%'],
+                          avoidLabelOverlap: false,
+                          animationType: 'scale',
+                          animationEasing: 'elasticOut',
+                          animationDelay: function (idx) {
+                              return Math.random() * 200;
+                          },
+                          label: {
+                            show: false,
+                            position: 'center'
+                          },
+                          emphasis: {
+                            label: {
+                              show: false,
+                            }
+                          },
+                          labelLine: {
+                            show: false
+                          },
+                          data: chartData // 渲染每个图表对应的数据
+                      }
+              ]
+          });
+    },
+  },
+  beforeDestroy(){
+    clearInterval(this.timer);        
+    this.timer = null;
+  }
+};
+</script>
+<style scoped>
+.box{width:100%;height: 100%;}
+.box>h3{color:#ffffff;margin:20px 0 0 20px;height:20px;line-height: 20px;font-weight: normal;font-size:20px;margin-bottom: 20px;}
+.container{width:100%;min-height: 150px;display: flex;flex-wrap: wrap;justify-content: space-between;}
+.wrapper{width:30%;height: 150px;display:inline-block;background:#ffffff;border-radius: 10px;margin:0 20px 20px 20px;clear:both;display:flex;align-items: center;position: relative;justify-content: space-between;}
+.wrapper p{position: absolute;z-index:999999;left:10px;top:5px;font-size: 16px;}
+.chartsDom{width:50%;height:150px;}
+.lines{width:50%;display:flex;align-items: center;flex-wrap: wrap;padding-right:5%;margin-left:-3%;margin-top:-2%;height: 120px;}
+.lines li{width:100%;border-bottom:2px solid #ededed;height:40px;line-height: 40px;box-sizing: border-box;color:#767676;vertical-align: middle;font-size:16px;}
+.lines li i{display:inline-block;width:10px;height: 10px;border-radius: 50%;margin-right:10px;}
+.lines li:first-child i{background:#0e8174;}
+.lines li:nth-child(2) i{background:#10c4B5;}
+.lines li:last-child i{background:#005562;}
+.lines li span{float:right;}
+.container2{width:30%;height:150px;overflow:hidden;background:#ffffff;color:#767676;margin:0 20px;box-sizing: border-box;border-radius: 10px;display:flex;justify-content: space-between;flex-wrap: wrap;align-items: center;}
+#charts2{width:50%;height:150px;}
+</style>

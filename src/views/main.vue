@@ -1,0 +1,216 @@
+<template>
+  <div class="home">
+    <div class='home_header'>
+      <img
+        class='icon'
+        src="./images/logo.png"
+      />
+      <span class='logo'>GPS管道巡线情况统计平台</span>
+      <span class='firstTree'>
+        <span
+          v-for="(value,key) in treedata"
+          :class='[activeKey==key?"itemTreeA":"itemTree"]'
+          @click="linkTo1(value.path,key)"
+          :key='key'
+        >
+          <i :class="value.icon"></i>
+          <span>{{value.name}}</span>
+        </span>
+        <span class='name'>{{userName}}<img class="loginOut" src="./images/loginOut.png"  @click="loginOut()" /></span>
+      </span>
+    </div>
+    <div class='leftTree'>
+        <el-menu
+            router
+            :unique-opened="true"
+            :default-active="openeds"
+            class="el-menu-vertical-demo"
+            background-color="#252932"
+            text-color="#8A8A8A"
+            active-text-color="#26f4ff"
+            @select="selectItems"
+        >
+          <menuTree :menu-data="treedata" />
+        </el-menu>
+    </div>
+    <!-- <div class='leftTree'>
+      <span
+        v-for="(value,key) in secondTree"
+        :class='[activeKeyS==key?"itemTreeA":"itemTree"]'
+        @click="linkTo2(value.path,key)"
+        :key='key'
+      >
+        <img :src="[activeKeyS==key?value.iconA:value.icon]" />
+        <span>{{value.name}}</span>
+      </span>
+    </div> -->
+    <div
+      class='contentBox'
+      v-if="secondTree.length>0"
+    >
+      <keep-alive>
+        <router-view></router-view>
+      </keep-alive>
+    </div>
+    <!-- <div
+      class='contentBox'
+      v-if="secondTree.length==0"
+      :loading='true'
+    >
+      5555
+    </div> -->
+  </div>
+</template>
+<script>
+import { digui } from '../libs/xml';
+import menuTree from '@/components/menu'
+export default {
+  components: {menuTree},
+  data() {
+    return {
+      activeKey: '0', //一级菜单选中
+      activeKeyS: '0', //二级菜单选中
+      userId: '',
+      userName:'',
+      treedata:[],
+      secondTree: [],
+      isCollapse: true,
+      openeds:null,
+    };
+  },
+  computed: {},
+  methods: {
+    linkTo1(pathName, key) {
+      //1级菜单跳转
+      // this.$router.push({
+      //   name: pathName,
+      // })
+      // this.activeKey=key
+    },
+    // linkTo2(pathName, key) {
+    //   //2级菜单跳转
+    //   this.$router.push({
+    //     path: pathName,
+    //   });
+    //   this.activeKeyS = key;
+    // },
+    selectItems(index){
+        this.$router.push({
+          path:index,
+        });
+        this.openeds=index;
+    },
+    async getquanxian(userId) {
+      await this.$myHttp.get('gpsGroups/getPurview?userId=' + userId).then((res) => {
+        let ss = JSON.parse(res.result);
+        this.treedata = digui([ss.node]);
+        console.log(this.treedata);
+        if (this.treedata[0].node.length == 0) {
+          this.secondTree = this.treedata;
+        } else {
+          this.secondTree = this.treedata[0].node;
+        }
+        sessionStorage.setItem('menu', JSON.stringify(this.treedata[0].node));
+        //console.log(sessionStorage.getItem('menu'));
+        this.treedata[0].node.map((val, key) => {
+          if (val.path == this.$route.path.split('/')[1]) {
+            this.activeKeyS = key;
+          }
+          if(val.node.length>0){
+            let arr=[];
+            val.node.map((item)=>{
+                arr.push(item.path);
+            })
+            if(val.path=="1307000000"){
+                  this.$Cookie.set('inspectionPermission',arr);//日报按钮权限
+            }
+            if(val.path=="1312000000"){
+                this.$Cookie.set('weekPermission',arr);//周报按钮权限
+            }
+            if(val.path=='1315000000'){
+                this.$Cookie.set('thirdParty',arr);//第三方按钮权限
+            }
+          }
+        });
+        if(this.$route.path.split('/')[1]=='home'){
+          if(this.secondTree.length>0){
+            this.$router.push({path:this.secondTree[0].path});
+            this.openeds=this.secondTree[0].path;
+          }
+          
+        }
+      });
+    },
+    loginOut(){
+      this.$Cookie.remove("userId");
+      this.$Cookie.remove("sessionid");
+      this.$Cookie.remove("islogin");
+      this.$router.push({ path:'/login'});
+    }
+  },
+  watch: {
+    $route(to, from) {
+      let treedata = this.treedata;
+      let path = to.path.split('/')[1];
+      this.openeds=path;
+      // console.log(55555555, path);
+      for (let i = 0; i < treedata.length; i++) {
+        if (treedata[i].path == path) {
+          this.activeKey == treedata[i].key;
+          this.secondTree = this.treedata[i].children;
+        }
+      }
+    },
+  },
+  beforeRouteEnter(to,from,next){
+      next(vm=>{
+        vm.openeds=to.path.split('/')[1];
+      })
+  },
+  beforeMount() {
+    // let activeKey=this.activeKey;
+    // let treedata=this.treedata;
+    // this.secondTree=this.treedata[activeKey].children
+  },
+  beforeDestroy() {},
+  created() {},
+  mounted() {
+    // let url = window.location.href;
+    // let userArr = url.split('?');
+    let islogin=this.$Cookie.get('islogin');
+    // let userId = "";
+    // userId =this.$Cookie.get('userId');
+    if(islogin){
+       let userId=this.$Cookie.get('userId');
+       this.userId = userId;
+       this.userName=this.$Cookie.get('userName');
+       this.getquanxian(userId);
+    }else{
+      this.$router.push({ path:'/login'});
+    }
+    // if (userArr && userArr.length > 1) {
+    //   userId = userArr[1].split('#')[0];
+    // }
+    // if (sessionStorage.getItem('userId')) {
+    //    userId = sessionStorage.getItem('userId');
+    // }
+    // if (userId) {
+    //    sessionStorage.setItem('userId', userId);
+    //   this.userId = userId;
+    //   this.getquanxian(userId);
+    // } 
+    // else {
+    //   window.vm.$message({
+    //     type: 'error',
+    //     message: '未登录',
+    //     showClose: true,
+    //     duration: 5000,
+    //   });
+    //   sessionStorage.setItem('userId', undefined);
+    // }
+  },
+};
+</script>
+<style scoped lang="less">
+@import 'main.less';
+</style>

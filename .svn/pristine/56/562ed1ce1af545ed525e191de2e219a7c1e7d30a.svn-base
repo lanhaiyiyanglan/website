@@ -1,0 +1,443 @@
+<template>
+    <div class="box">
+            <el-form :inline="true" :model="form" class="form">
+                    <el-form-item label="输油处：" prop="AREAID">
+                            <el-select
+                                size="small"
+                                v-model="form.AREAID"
+                                placeholder="请选择输油处"
+                                @change='changePlace'
+                                >
+                                <el-option
+                                    v-for='item in placelist'
+                                    :key='item.GROUPCODE'
+                                    :label="item.GROUPNAME"
+                                    :value="item.GROUPCODE"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item label="输油站：" prop="STATIONID">
+                            <el-select
+                                size="small"
+                                v-model="form.STATIONID"
+                                placeholder="请选择输油站"
+                                >
+                                <el-option
+                                    v-for='item in stationlist'
+                                    :key='item.GROUPCODE'
+                                    :label="item.GROUPNAME"
+                                    :value="item.GROUPCODE"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item label="规模：" prop="scale">
+                            <el-select
+                                size="small"
+                                style="width:120px;"
+                                v-model="form.scale"
+                                >
+                                <el-option
+                                    v-for='item in scaleList'
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item label="施工状态：" prop="constructionState">
+                            <el-select
+                                size="small"
+                                style="width:120px;"
+                                v-model="form.constructionState"
+                                >
+                                <el-option
+                                    v-for='item in constructionStateList'
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item label="标准化布控等级：" prop="standardizationLevel">
+                            <el-select
+                                size="small"
+                                style="width:120px;"
+                                v-model="form.standardizationLevel"
+                                >
+                                <el-option
+                                    v-for='item in standardizationLevelList'
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button  size="small" type="primary" @click="search()">查询</el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button size="small" type="primary"  @click="exportToExcel">导出</el-button>
+                    </el-form-item>
+            </el-form>
+            <div style="padding:0 0 10px 20px;">
+                <el-button size="small" type="primary" @click="search2()">查询</el-button>
+                <el-button size="small" type="primary" @click="operation('查看')">查看</el-button>
+                <el-button size="small" type="primary" @click="operation('添加')">添加</el-button>
+                <el-button size="small" type="primary" @click="operation('修改')">修改</el-button>
+                <el-button size="small" type="primary" @click="delet()">删除</el-button>
+                <el-button size="small" type="primary" @click="site()">定位</el-button>
+                <el-button size="small" type="primary" @click="history">查看历史记录</el-button>
+            </div>
+            <div class="tableBox">
+                <div  id="tableExport">
+                    <el-table height="calc(100vh - 300px)" 
+                    :data="tableData.slice((currentPage - 1) * pageSize, currentPage*pageSize)" tooltip-effect="dark" border style="width: 100%"   
+                    :header-cell-style="{background:'#fff','text-align':'center'}" :cell-style="{'text-align':'center'}"
+                    highlight-current-row
+                    @current-change="handleCurrentChange"
+                    >
+                        <el-table-column label="工程信息">
+                               <el-table-column  type="index" label="序号" width="50px;">
+                                    <template slot-scope="scope">
+                                        <span>{{(currentPage - 1) * pageSize + scope.$index + 1}}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column prop="" label="输油部（分公司）"></el-table-column>
+                                <el-table-column prop="" label="站场"></el-table-column>
+                                <el-table-column prop="" label="工程名称"></el-table-column>
+                                <el-table-column prop="" label="具体位置"></el-table-column>
+                                <el-table-column prop="" label="桩号"></el-table-column>
+                                <el-table-column prop="" label="规模"></el-table-column>
+                                <el-table-column prop="" label="施工类型"></el-table-column>
+                                <el-table-column prop="" :label="'第三方工程信息 | 简要描述'" :render-header="renderheader"></el-table-column>
+                                <el-table-column prop="" label="施工单位名称"></el-table-column>
+                                <el-table-column prop="" label="负责人"></el-table-column>
+                                <el-table-column prop="" label="联系方式"></el-table-column>
+                        </el-table-column>
+                 </el-table>
+                </div>
+            </div>
+            <div class="paginationBox">
+                <el-pagination
+                    background
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[10,15,20]"
+                    :page-size="pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total">
+                    </el-pagination>
+            </div>
+            <div class="mapBox" v-if="mapBool">
+                <div class="conBox">
+                    <div class="title">地图展示<span
+                        class="close"
+                        @click="closeMap"
+                    >{{"×"}}</span></div>
+                    <iframe src="/SinopecPatrol/statistics/static/AntuMap/AntuMap.html"></iframe>
+                    <!-- <iframe :src="src"></iframe> -->
+                </div>
+            </div>
+            <dealThird
+             :formobj='formobj'
+             v-if="showDeal"
+             @close="closeDeal"
+             @sub='submitDetail'
+            >
+            </dealThird>
+            <thridHistory
+            :historyList='historyList'
+             v-if="historyShow"
+             @closeHistory="closeHistory"
+            >
+            </thridHistory>
+            <thridSearch
+            v-if="searchShow"
+            @subSearch="submitSearch"
+            @closeSearch="closeSearch"
+            ></thridSearch>
+    </div>
+</template>
+<script>
+import dealThird from '../../components/dealThird.vue'
+import thridHistory from '../../components/thridHistory.vue'
+import thridSearch from '../../components/thridSearch.vue'
+export default {
+    components: { dealThird,thridHistory,thridSearch },
+    data(){
+        return{
+            form: {
+                AREAID: '',
+                STATIONID: '',
+                scale:'',
+                constructionState:'',
+                standardizationLevel:''
+            },
+            placelist:[],
+            stationlist:[],
+            scaleList:[
+                {
+                    value: '',
+                    label: '全部'
+                },
+                {
+                    value: '0',
+                    label: '大'
+                }, 
+                {
+                    value: '1',
+                    label: '中'
+                },
+                {
+                    value: '2',
+                    label: '小'
+                },
+            ],
+            constructionStateList:[
+                {
+                    value: '0',
+                    label: '全部'
+                },
+                {
+                    value: '1',
+                    label: '正在施工'
+                }, 
+                {
+                    value: '2',
+                    label: '未施工（包括停工）'
+                },
+                {
+                    value: '3',
+                    label: '已完工'
+                },
+            ],
+            standardizationLevelList:[
+                {
+                    value: '0',
+                    label: '全部'
+                },
+                {
+                    value: '1',
+                    label: '一级'
+                },
+                {
+                    value: '2',
+                    label: '二级'
+                }, 
+                {
+                    value: '3',
+                    label: '三级'
+                },
+                {
+                    value: '4',
+                    label: '不需要'
+                },
+            ],
+            tableData:[],
+            times:[],
+            currentPage: 1,
+            pageSize: 10,
+            total:0,
+            //src:"./static/AntuMap/AntuMap.html",
+            mapBool:false,
+            showTable:false,
+            formobj:{},
+            showDeal:false,
+            currentRow: null,
+            historyShow:false,
+            historyList:{},
+            title:'',
+            flag:1,
+            searchShow:false,
+        }
+    },
+    watch: {
+        '$route' (to, from) { //监听路由是否变化
+                    if(to.path != from.path){
+                        this.init();//重新加载数据
+                    }
+        }
+    },
+    mounted(){
+        this.init();
+    },
+    methods:{
+         init(){
+            this.form.AREAID="";
+            this.getAllArea();//获取输油处
+            this.changePlace(this.form.AREAID);//根据输油处获取输油站
+            this.total=0;
+            this.currentPage=1;
+        },
+        handleSizeChange(val) {
+            this.pageSize=val;//每页多少条
+        },
+        handleCurrentChange(val) {
+            this.currentPage=val;//当前页
+        },
+         //获取输油处
+        getAllArea(){
+            let url='gpsGroups/getAllArea?userId=' + this.$Cookie.get('userId');
+            this.$myHttp.get(url).then((res) => {
+                this.placelist = res.result;
+            });
+            this.showTable=false;
+        },
+        //获取输油站
+        changePlace(val){
+                this.form.STATIONID="";
+                let url='gpsGroups/getStationsByArea?userId=' +this.$Cookie.get('userId') +'&groupCode=' +val;
+                this.$myHttp.get(url).then((res) => {
+                  this.stationlist = res.result;
+                });
+                this.showTable=false;
+        },
+        //查询数据
+        search(){
+        },
+        search2(){
+          this.searchShow=true;
+        },
+        submitSearch(e){
+
+        },
+        closeSearch(){
+          this.searchShow=false;
+        },
+        delet(){
+
+        },
+        operation(title){
+           if(title=="修改"||title=="查看"){
+                // if(this.currentRow==null){
+                //      window.vm.$message({
+                //             type: 'error',
+                //             message:'请选择一条工程信息',
+                //             showClose: true,
+                //             duration: 2000,
+                //      });
+                // }else{
+                //     this.formobj=this.currentRow;
+                //     console.log(this.formobj);
+                //     this.title=title;
+                //     this.show=true;
+                // }
+                this.formobj={}
+                this.title=title;
+                this.showDeal=true;
+            }else{//新增
+                    this.formobj={};
+                    this.title=title;
+                    this.showDeal=true;
+            }
+            if(title=="查看"){
+                this.flag=0;
+            }else{
+                this.flag=1;
+            }
+        },
+        //查看轨迹
+        site(){
+           this.mapBool = true;
+        },
+        closeMap() {
+            this.mapBool = false;
+            sessionStorage.setItem('mapInfo', null);
+        },
+        //关闭处理页面
+        closeDeal(){
+           this.showDeal=false;
+        },
+        //保存处理结果
+        submitDetail(e){
+            // this.$myHttp.post('daiXun/updateDaiXun',e).then((res)=>{
+            //     if(res.success){
+            //         window.vm.$message({
+            //                 type: 'success',
+            //                 message: '操作成功',
+            //                 showClose: true,
+            //                 duration: 2000,
+            //         });
+            //         this.showDeal=false;
+            //     }
+            //     this.search();
+            // })
+        },
+        //导出
+        exportToExcel(){
+            tableToExcel('tableExport', '第三方施工管理表');
+        },
+        renderheader(h, { column, $index }) {
+            return h('span', {}, [
+                h('span', {}, column.label.split('|')[0]),
+                h('br'),
+                h('span', {}, column.label.split('|')[1])
+            ]);
+        },
+        handleCurrentChange(val) {
+            this.currentRow = val;
+        },
+        history(){
+            this.historyShow=true;
+        },
+        closeHistory(){
+            this.historyShow=false;
+        }
+    },
+}
+</script>
+<style scoped>
+.box{position: relative;width:100%;height: 100%;}
+.form{margin:2vh auto;width:98%;}
+.tableBox{width:98%;color:#000000;margin:2vh auto;font-size:13px;text-align: center;}
+.tableBox h3{color:#26f4ff;font-size:20px;padding:0px 0 10px 0;}
+.tableBox p{color: #26f4ff;font-size: 14px;height:20px;line-height: 20px;margin-bottom:10px;}
+.export-btn{color: #fff;background-color: #409eff;border-color: #409eff;}
+.spScollor table{
+    border-collapse: collapse;
+    width:90%;
+    border:1px solid #c6c6c6 !important;
+    margin:0 auto;
+    border-spacing: 0;
+}
+.el-form-item{margin-bottom: 0!important;}
+.mapBox {
+     background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 99999999;
+}
+ .mapBox .conBox .title .close {
+    position: absolute;
+    height: 30px;
+    line-height: 30px;
+    width: 30px;
+    right: 15px;
+    top: 15px;
+    font-size: 25px;
+    cursor: pointer;
+}
+.mapBox .conBox {
+    height: 90%;
+    width: 90%;
+    margin-top: 2.5%;
+    margin-left: 5%;
+}
+.mapBox .conBox .title {
+    position: relative;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    background: #fff;
+    border-bottom: 1px solid #ccc;
+    color: #000000;
+}
+.mapBox .conBox iframe {
+    height: calc((100% - 60px));
+    width: 100%;
+}
+</style>

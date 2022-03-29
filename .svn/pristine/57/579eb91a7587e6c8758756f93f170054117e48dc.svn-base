@@ -1,0 +1,192 @@
+<template>
+  <div class="addList">
+    <div class='addTable'>
+      <div class='title'>
+        工程施工历史记录
+        <span
+          class="close"
+          @click="cancel"
+        >{{"×"}}</span>
+      </div>
+      <div class="formbox">
+        <el-table
+            :data="tableData"
+            style="width: 100%"
+             :cell-style="{'text-align':'center'}"
+             :header-cell-style="{background:'#fff','text-align':'center'}"
+            max-height="450">
+            <el-table-column
+            prop="date"
+            label="输油部(分公司)"
+            width="150">
+            </el-table-column>
+            <el-table-column
+            prop="name"
+            label="站场"
+            width="120">
+            </el-table-column>
+            <el-table-column
+            prop="province"
+            label="工程名称"
+            width="120">
+            </el-table-column>
+            <el-table-column
+            prop="city"
+            label="具体位置"
+            width="120">
+            </el-table-column>
+            <el-table-column
+            prop="address"
+            label="桩号"
+            width="300">
+            </el-table-column>
+            <el-table-column
+            prop="zip"
+            label="规模"
+            width="120">
+            </el-table-column>
+            <el-table-column
+            fixed="right"
+            label="操作"
+            width="120">
+            <template slot-scope="scope">
+                <el-button
+                @click.native.prevent="deleteRow(scope.$index, tableData)"
+                type="text"
+                size="small">
+                移除
+                </el-button>
+            </template>
+            </el-table-column>
+        </el-table>
+      </div>
+    </div>
+  </div>
+
+</template>
+
+<script>
+export default {
+  props: ['historyList'],
+  data() {
+    return {
+        tableData: [{
+          date: '2016-05-03',
+          name: '王小虎',
+          province: '上海',
+          city: '普陀区',
+          address: '上海市普陀区金沙江路 1518 弄',
+          zip: 200333
+        }, {
+          date: '2016-05-02',
+          name: '王小虎',
+          province: '上海',
+          city: '普陀区',
+          address: '上海市普陀区金沙江路 1518 弄',
+          zip: 200333
+        }, {
+          date: '2016-05-04',
+          name: '王小虎',
+          province: '上海',
+          city: '普陀区',
+          address: '上海市普陀区金沙江路 1518 弄',
+          zip: 200333
+        }, {
+          date: '2016-05-01',
+          name: '王小虎',
+          province: '上海',
+          city: '普陀区',
+          address: '上海市普陀区金沙江路 1518 弄',
+          zip: 200333
+        }, {
+          date: '2016-05-08',
+          name: '王小虎',
+          province: '上海',
+          city: '普陀区',
+          address: '上海市普陀区金沙江路 1518 弄',
+          zip: 200333
+        }, {
+          date: '2016-05-06',
+          name: '王小虎',
+          province: '上海',
+          city: '普陀区',
+          address: '上海市普陀区金沙江路 1518 弄',
+          zip: 200333
+        }, {
+          date: '2016-05-07',
+          name: '王小虎',
+          province: '上海',
+          city: '普陀区',
+          address: '上海市普陀区金沙江路 1518 弄',
+          zip: 200333
+        }]
+    };
+  },
+  created() {
+   
+  },
+  methods: {
+   cancel(){
+        this.$emit('closeHistory');
+   },
+   deleteRow(index, rows) {
+        rows.splice(index, 1);
+      }
+  },
+};
+</script>
+
+<style lang="less" scoped>
+.addList {
+  position: absolute;
+  z-index: 2;
+  left:0;top:0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  .addTable {
+    width:1000px;
+    height: 490px;
+    background: #000000;
+    position: absolute;
+    left: 50%;
+    margin-left: -500px;
+    z-index:99999;
+    .title {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      border-bottom: 1px solid #ccc;
+      color: #3baaaf;font-size:16px;
+      .close {
+        position: absolute;
+        height: 30px;
+        line-height: 30px;
+        width: 30px;
+        right: 15px;
+        top: 15px;
+        font-size: 25px;
+        cursor: pointer;
+      }
+    }
+  }
+}
+.formbox {
+  overflow: hidden;
+  padding: 20px 20px 0 20px;
+  box-sizing: border-box;
+  .el-form-item {
+    float: left;
+    width: 43%;
+    .el-select {
+      width: 100%;
+    }
+  }
+  .w100 {
+    width: 100%;
+  }
+}
+.lookSpan{color:#ffffff;}
+</style>

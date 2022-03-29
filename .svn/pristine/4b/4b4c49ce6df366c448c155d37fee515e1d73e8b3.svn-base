@@ -1,0 +1,67 @@
+<template>
+  <div
+    id="main"
+    class="app-main"
+  >
+    <router-view></router-view>
+  </div>
+</template>
+
+<script>
+export default {
+  mounted() {
+    this.adjustSize();
+    window.addEventListener('resize', this.adjustSize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.adjustSize);
+  },
+  methods: {
+    adjustSize() {
+      var remSize = window.innerHeight / 50 || document.body.clientHeight / 50;
+      document.querySelector('html').style.fontSize = remSize + 'px';
+    },
+  },
+};
+</script>
+
+<style>
+.app-main {
+  width: 100%;
+  height: 100%;
+}
+
+.el-popover {
+  height: 50%;
+  overflow: auto;
+}
+.el-input__inner {
+  color: #fff;
+  background: #252932 !important;
+}
+.el-form-item__label {
+  color: #fff;
+}
+.el-input-number__decrease,
+.el-input-number__increase {
+  background: #1e1d21;
+}
+.notxt {
+}
+.notxt .el-form-item__label {
+  color: #000;
+}
+.el-loading-mask {
+  background-color: rgba(24, 24, 24, 0.48);
+}
+.hide .el-upload{
+  display: none!important;
+}
+.spScollor .el-scrollbar__wrap{overflow-x: hidden;}
+.jidu > .el-input__inner,#inspectionDate .el-input__inner{height: 32px;line-height: 32px;}
+#inspectionDate .el-date-editor.el-input{width:100%;}
+#personDialog .el-dialog .el-form-item__label {
+  color: #000;
+}
+#personDialog .el-dialog .el-input__inner{ color: #000!important;background:#ffffff!important;}
+</style>

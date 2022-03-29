@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <title>GPS管道巡线情况统计平台</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0">
+    <link rel="stylesheet" href="/SinopecPatrol/statistics/compress/main.ddfa5424d6014ee8bb4f.css">
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+</head>
+
+<body>
+    <div id="app"></div>
+    <div class="lock-screen-back" id="lock_screen_back"></div>
+    <script type="text/javascript" src="/SinopecPatrol/statistics/compress/vender-base.ddfa5424d6014ee8bb4f.js"></script>
+    <script type="text/javascript" src="/SinopecPatrol/statistics/compress/vender-exten.ddfa5424d6014ee8bb4f.js"></script>
+    <script type="text/javascript" src="/SinopecPatrol/statistics/compress/main.ddfa5424d6014ee8bb4f.js"></script>
+</body>
+
+</html>

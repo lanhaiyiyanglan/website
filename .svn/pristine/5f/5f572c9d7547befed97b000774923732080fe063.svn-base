@@ -1,0 +1,464 @@
+<template>
+    <div class="box">
+        <el-form :inline="true" :model="form" class="form">
+            <el-form-item label="输油处：" prop="AREAID">
+               <el-select
+                    size="small"
+                    v-model="form.AREAID"
+                    placeholder="请选择输油处"
+                    @change='changePlace'
+                    >
+                    <el-option
+                        v-for='item in placelist'
+                        :key='item.GROUPCODE'
+                        :label="item.GROUPNAME"
+                        :value="item.GROUPCODE"
+                    ></el-option>
+                </el-select>
+          </el-form-item>
+          <el-form-item label="输油站：" prop="STATIONID">
+            <el-select
+                size="small"
+                v-model="form.STATIONID"
+                placeholder="请选择输油站"
+                @change='changeStation'
+                >
+                <el-option
+                    v-for='item in stationlist'
+                    :key='item.GROUPCODE'
+                    :label="item.GROUPNAME"
+                    :value="item.GROUPCODE"
+                ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="日期：" prop="dateTime">
+              <el-date-picker size="small" v-model="form.dateTime" type="month" placeholder="选择日期"  format="yyyy-MM" value-format="yyyy-MM" @change="selectTime"></el-date-picker>
+          </el-form-item>
+            <el-form-item>
+                <el-button size="small" type="primary" @click="search()">查询</el-button>
+            </el-form-item>
+            <template v-if="haveSearch">
+                <el-form-item>
+                     <el-button  size="small" type="primary" @click="save()">保存</el-button>
+                </el-form-item>
+                <el-form-item>
+                    <el-button size="small" type="primary"  @click="exportToExcel">导出</el-button>
+                </el-form-item>
+            </template>
+        </el-form>
+        <div class="tableBox">
+             <el-scrollbar style="height:100%;" class="spScollor">
+                <div   id="tableExport">
+                    <table class="ckTable" border="1" bordercolor="#c6c6c6">
+                        <tr>
+                            <td colspan="2">被考核单位：<input v-model="data.beAssCompany" class="spInput editInput" placeholder="点击输入"><span>{{data.beAssCompany}}</span></td> 
+                            <td  colspan="2">考核部门:<input type="text" v-model="data.assDepartment" style="display:inline-block;width:80%;" placeholder="点击输入" class="editInput"><span>{{data.assDepartment}}</span></td> 
+                            <td  colspan="2">考核人：<input type="text" v-model="data.assPerson" style="display:inline-block;width:80%;" placeholder="点击输入" class="editInput"><span>{{data.assPerson}}</span></td> 
+                            <td  colspan="1">考核得分：<em style="color:#bd0008;font-style:normal;font-weight:bold;">{{data.score}}</em></td> 
+                        </tr>
+                        <tr>
+                            <th width="8%">考核名称</th>
+                            <th width="5%">子考核项目</th>
+                            <th width="30%">考核内容</th>
+                            <th width="20%">评分标准</th>
+                            <th width="20%">检查方式</th>
+                            <th width="5%">扣分</th>
+                            <th width="12%">扣分原因</th>
+                        </tr>
+                        <tr>
+                            <td rowspan="9" style="text-align:center;">管道巡护和保卫管理(50分)</td>
+                            <td style="text-align:center;">1</td>
+                            <td>是否按照合同规定配备相应数量的巡护及管理人员，并保持人员的稳定性和低更换率。</td>
+                            <td>缺少一人扣0.5分，不符合要求一人口0.2分，人员年变动率≥30%扣2分。</td>
+                            <td>现场检查</td>
+                            <td><input type="number" v-model="data.item1" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item1')"><span>{{data.item1}}</span></td>
+                            <td><input type="text" v-model="data.itemReason1" placeholder="点击输入" class="editInput"><span>{{data.itemReason1}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">2</td>
+                            <td>是否按照合同规定配备相应巡线用品。</td>
+                            <td>巡线用品缺少一项，视情节扣0.5~1分</td>
+                            <td>现场检查</td>
+                            <td><input type="number" v-model="data.item2" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item2')"><span>{{data.item2}}</span></td>
+                            <td><input type="text" v-model="data.itemReason2" placeholder="点击输入" class="editInput"><span>{{data.itemReason2}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">3</td>
+                            <td>是否巡线工岗位职责、巡线工考核奖惩制度等制度。</td>
+                            <td>制度不全，确一项扣0.5分。</td>
+                            <td>查承包、巡护、考奖等制度</td>
+                            <td><input type="number" v-model="data.item3" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item3')"><span>{{data.item3}}</span></td>
+                            <td><input type="text" v-model="data.itemReason3" placeholder="点击输入" class="editInput"><span>{{data.itemReason3}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">4</td>
+                            <td>是否按照规定的路线和频次开展管道巡护工作。</td>
+                            <td>未按规定路线巡护，漏巡、少巡，发现一次，扣1分。</td>
+                            <td>现场检查和相关记录和技术检查</td>
+                            <td><input type="number" v-model="data.item4" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item4')"><span>{{data.item4}}</span></td>
+                            <td><input type="text" v-model="data.itemReason4" placeholder="点击输入" class="editInput"><span>{{data.itemReason4}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">5</td>
+                            <td>是否进行管道地面标识及其他附属设施的检查，发现问题是否记录和汇报。</td>
+                            <td>未按规定进行记录和汇报，发现一1次，扣1分。</td>
+                            <td>现场检查和相关记录和技术检查</td>
+                            <td><input type="number" v-model="data.item5" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item5')"><span>{{data.item5}}</span></td>
+                            <td><input type="text" v-model="data.itemReason5" placeholder="点击输入" class="editInput"><span>{{data.itemReason5}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">6</td>
+                            <td>及时发现和清理占压管道上方的违章建筑。</td>
+                            <td>没有及时发现和清理占压管道上方的违章建筑（堆占）一项扣1分。</td>
+                            <td>查相关资料和活动记录</td>
+                            <td><input type="number" v-model="data.item6" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item6')"><span>{{data.item6}}</span></td>
+                            <td><input type="text" v-model="data.itemReason6" placeholder="点击输入" class="editInput"><span>{{data.itemReason6}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">7</td>
+                            <td>是否对巡护工开展培训和考核工作</td>
+                            <td>每季度各一次，少一项扣2分</td>
+                            <td>查培训、考核记录</td>
+                            <td><input type="number" v-model="data.item7" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item7')"><span>{{data.item7}}</span></td>
+                            <td><input type="text" v-model="data.itemReason7" placeholder="点击输入" class="editInput"><span>{{data.itemReason7}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">8</td>
+                            <td>是否建立管道巡护设备设施台账，做好管道巡护设备设施的保管、维护和使用。</td>
+                            <td>无台账扣1分；未按规定对设备进行保养扣1分。</td>
+                            <td>查台账及保养等记录</td>
+                            <td><input type="number" v-model="data.item8" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item8')"><span>{{data.item8}}</span></td>
+                            <td><input type="text" v-model="data.itemReason8" placeholder="点击输入" class="editInput"><span>{{data.itemReason8}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">9</td>
+                            <td>特殊时期是否按照甲方要求开展加密巡护和重点部位值守，是否配合开展武装巡护，并做好记录。</td>
+                            <td>未按要求开展，发现一次扣1分；无记录扣2分。</td>
+                            <td>现场检查和记录检查</td>
+                            <td><input type="number" v-model="data.item9" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item9')"><span>{{data.item9}}</span></td>
+                            <td><input type="text" v-model="data.itemReason9" placeholder="点击输入" class="editInput"><span>{{data.itemReason9}}</span></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="9">管道日常管理(50分)</td>
+                            <td style="text-align:center;">1</td>
+                            <td>是否建立管道基础资料，绘制重点、要害点分布图等（可能发生的打孔盗油及破坏点、重点警戒点、穿跨越、占压管道点、安全隐患点）。</td>
+                            <td>管道线路资料齐全完整、准确可靠，没有做到，少一项扣0.5分。</td>
+                            <td>查阅资料、图表、现场抽查</td>
+                            <td><input type="number" v-model="data.item10" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item10')"><span>{{data.item10}}</span></td>
+                            <td><input type="text" v-model="data.itemReason10" placeholder="点击输入" class="editInput"><span>{{data.itemReason10}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">2</td>
+                            <td>是否按要求开展基础数据采集、管道高后果区数据更新、管道危害识别，完成相关数据录入工作，按要求时间上报其他有关数据报表。</td>
+                            <td>查看记录，有一项不符合要求扣3分；</td>
+                            <td>查看系统填报表单、数据采集类相关项目进展记录及其他有关报表</td>
+                            <td><input type="number" v-model="data.item11" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item11')"><span>{{data.item11}}</span></td>
+                            <td><input type="text" v-model="data.itemReason11" placeholder="点击输入" class="editInput"><span>{{data.itemReason11}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">3</td>
+                            <td>是否及时报送管道线路发生的各项事件与事故信息，无漏报、误报、迟报等情况发生，对每一项事件事故均进行了调查、分析与学习，同时开展年度管道线路事件统计分析与总结。</td>
+                            <td>查看双汇报记录，少一项扣2分；</td>
+                            <td>查看事件事故有关报表与记录</td>
+                            <td><input type="number" v-model="data.item12" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item12')"><span>{{data.item12}}</span></td>
+                            <td><input type="text" v-model="data.itemReason12" placeholder="点击输入" class="editInput"><span>{{data.itemReason12}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">4</td>
+                            <td>汛期是否开展管道巡查，及时填报汛期水毁日报，并按照上报。</td>
+                            <td>少一次扣0.5分</td>
+                            <td>查记录</td>
+                            <td><input type="number" v-model="data.item13" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item13')"><span>{{data.item13}}</span></td>
+                            <td><input type="text" v-model="data.itemReason13" placeholder="点击输入" class="editInput"><span>{{data.itemReason13}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">5</td>
+                            <td>水毁发生露管、露光缆等事件应及时上报，采取临时保护措施。</td>
+                            <td>未发现一次扣1分，未及时上报扣0.5分，未采取保护措施一次扣2分</td>
+                            <td>查系统及现场</td>
+                            <td><input type="number" v-model="data.item14" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item14')"><span>{{data.item14}}</span></td>
+                            <td><input type="text" v-model="data.itemReason14" placeholder="点击输入" class="editInput"><span>{{data.itemReason14}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:center;">6</td>
+                            <td>所辖管段内伴行路、管堤等其他管道附属设施保持良好在用状态。2立方及以下冲沟、陷坑等缺陷问题应及时处理。</td>
+                            <td>未处理的每一项扣2分</td>
+                            <td>查现场</td>
+                            <td><input type="number" v-model="data.item15" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item15')"><span>{{data.item15}}</span></td>
+                            <td><input type="text" v-model="data.itemReason15" placeholder="点击输入" class="editInput"><span>{{data.itemReason15}}</span></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="3">7</td>
+                            <td>管道中心线两侧5m范围内施工的，应及时通过双汇报报告输油站，并现场设立警戒线。</td>
+                            <td>每缺一项扣1分。</td>
+                            <td rowspan="2"></td>
+                            <td rowspan="3"><input type="number" v-model="data.item16" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'item16')"><span>{{data.item16}}</span></td>
+                            <td rowspan="3"><input type="text" v-model="data.itemReason16" placeholder="点击输入" class="editInput"><span>{{data.itemReason16}}</span></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;">督促施工方进行地貌恢复和场地平整。</td>
+                            <td>现场一项不符合要求，扣1分。</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;">配合公司、分公司及外部支持人员开展现场问题排查。</td>
+                            <td>不配合工作，不得分。配合不力，视情况扣1~5分/次。</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td rowspan="5">其他</td>
+                            <td rowspan="5" style="text-align:center;">1</td>
+                            <td colspan="3" style="text-align:left;">1.发生打孔盗油案件，1次扣20分</td>
+                            <td rowspan="5"><input type="number" v-model="data.other" @blur="changeScore()" placeholder="点击输入" class="editInput" @input="setValue($event.target,'other')"><span>{{data.other}}</span></td>
+                            <td rowspan="5"><input type="text" v-model="data.otherReason" placeholder="点击输入" class="editInput"><span>{{data.otherReason}}</span></td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align:left;">2.发生由施工方造成的管道损坏事故，1次扣20分；</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align:left;">3.新增违章占压，发生1起扣10分；</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align:left;">4. 发生腐蚀穿孔，一次扣20分；</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" style="text-align:left;">4.光缆中断（非自然中断），发生1起（单点）扣10分。</td>
+                        </tr>
+                        <tr>
+                            <td>总分</td>
+                            <td colspan="6" style="font-weight:bold;"><em style="color:#bd0008;font-style:normal;">{{data.score}}</em></td>
+                        </tr>
+                    </table>
+                </div>
+                
+            </el-scrollbar>
+        </div>
+    </div>
+</template>
+<script>
+import { tableToExcel } from '../../libs/xml';
+export default {
+     data(){
+       return{
+          form: {
+                AREAID: '',
+                STATIONID: '',
+                dateTime:"",
+          },
+          placelist:[],
+          stationlist:[],
+          objForm:{
+                "serialid":0,
+                "areaid": "",
+                "stationid": "",
+                "assDate": "",
+                "beAssCompany":"",
+                "assDepartment":"",
+                "assPerson":"",
+                "score": "",
+                "item1":"",
+                "itemReason1":"",
+                "item2":"",
+                "itemReason2": "",
+                "item3":"",
+                "itemReason3":"",
+                "item4":"",
+                "itemReason4":"",
+                "item5":"",
+                "itemReason5":"",
+                "item6":"",
+                "itemReason6":"",
+                "item7": "",
+                "itemReason7":"",
+                "item8": "",
+                "itemReason8":"",
+                "item9":"",
+                "itemReason9":"",
+                "item10":"",
+                "itemReason10":"",
+                "item11":"",
+                "itemReason11":"",
+                "item12":"",
+                "itemReason12":"",
+                "item13": "",
+                "itemReason13":"",
+                "item14":"",
+                "itemReason14":"",
+                "item15": "",
+                "itemReason15": "",
+                "item16":"",
+                "itemReason16": "",
+                "other": "",
+                "otherReason": "",
+                "lastmodified": "",
+                "modifiedby":"",
+          },
+          data:{},
+          haveSearch:false
+       }
+    },
+    mounted(){
+        this.init();
+    },
+    methods:{
+        init(){
+            this.form.AREAID="";
+            this.form.dateTime="";
+            this.data=Object.assign({},this.objForm);
+            this.getAllArea();//获取输油处
+            this.changePlace(this.form.AREAID);//根据输油处获取输油站
+        },
+         //获取输油处
+        getAllArea(){
+            let url='pipe/getAreaList?userId=' + sessionStorage.getItem('userId');
+            this.$myHttp.get(url).then((res) => {
+                this.placelist = res.result;
+            });
+            this.data=Object.assign({},this.objForm);
+            this.haveSearch=false;
+        },
+        //获取输油站
+        changePlace(val){
+                this.form.STATIONID="";
+                let url='pipe/getStationList?userId=' +sessionStorage.getItem('userId') +'&groupCode=' +val;
+                this.$myHttp.get(url).then((res) => {
+                  this.stationlist = res.result;
+                });
+                this.data=Object.assign({},this.objForm);
+                this.haveSearch=false;
+        },
+        exportToExcel() {
+            tableToExcel('tableExport', '华南公司管道外包巡护工作考核评分表');
+         },
+         changeScore(){
+             this.data.score=100-(Number(this.data.item1)+Number(this.data.item2)+Number(this.data.item3)+Number(this.data.item4)+Number(this.data.item5)+Number(this.data.item6)+Number(this.data.item7)+
+             Number(this.data.item8)+Number(this.data.item9)+Number(this.data.item10)+Number(this.data.item11)+Number(this.data.item12)+Number(this.data.item13)+Number(this.data.item14)+Number(this.data.item15)+Number(this.data.item16)+Number(this.data.other))
+         },
+         changeStation(val){
+           this.data=Object.assign({},this.objForm);
+           this.haveSearch=false;
+         },
+         selectTime(val){
+           this.data=Object.assign({},this.objForm);
+           this.haveSearch=false;
+        },
+         search(){
+            if(this.form.AREAID==""||this.form.STATIONID==""||this.form.dateTime==""){
+                     window.vm.$message({
+                            type: 'error',
+                            message:'请选择输油处，输油站，日期',
+                            showClose: true,
+                            duration: 2000,
+                     });
+            }else{
+                this.$myHttp.get('contractor/getInfo?areaId=' +this.form.AREAID+'&stationId='+this.form.STATIONID+'&assDate='+this.form.dateTime).then((res) => {
+                    if(res.result!=null){
+                        this.data=res.result;
+                    }else{
+                        this.data=Object.assign({},this.objForm);
+                        console.log(this.data);
+                    }
+                });
+                this.haveSearch=true;
+            }
+         },
+        setValue(target,value) {
+            if(target.value > 100 || target.value < 1 ){
+                this.data[""+value+""] = '';
+                return;
+            }
+        },
+         save(){
+             let obj={
+                "gpsContractor": {
+                            "serialid":this.data.serialid,
+                            "areaid":this.form.AREAID,
+                            "stationid":this.form.STATIONID,
+                            "assDate":this.form.dateTime,
+                            "beAssCompany":this.data.beAssCompany,
+                            "assDepartment":this.data.assDepartment,
+                            "assPerson":this.data.assPerson,
+                            "score":this.data.score==""?0:this.data.score,
+                            "item1":this.data.item1==""?0:this.data.item1,
+                            "itemReason1":this.data.itemReason1,
+                            "item2":this.data.item2==""?0:this.data.item2,
+                            "itemReason2":this.data.itemReason2,
+                            "item3":this.data.item3==""?0:this.data.item3,
+                            "itemReason3":this.data.itemReason3,
+                            "item4":this.data.item4==""?0:this.data.item4,
+                            "itemReason4":this.data.itemReason4,
+                            "item5":this.data.item5==""?0:this.data.item5,
+                            "itemReason5":this.data.itemReason5,
+                            "item6":this.data.item6==""?0:this.data.item6,
+                            "itemReason6":this.data.itemReason6,
+                            "item7": this.data.item7==""?0:this.data.item7,
+                            "itemReason7":this.data.itemReason7,
+                            "item8":this.data.item8==""?0:this.data.item8,
+                            "itemReason8":this.data.itemReason8,
+                            "item9":this.data.item9==""?0:this.data.item9,
+                            "itemReason9":this.data.itemReason9,
+                            "item10":this.data.item10==""?0:this.data.item10,
+                            "itemReason10":this.data.itemReason10,
+                            "item11":this.data.item11==""?0:this.data.item11,
+                            "itemReason11":this.data.itemReason11,
+                            "item12":this.data.item12==""?0:this.data.item12,
+                            "itemReason12":this.data.itemReason12,
+                            "item13":this.data.item13==""?0:this.data.item13,
+                            "itemReason13":this.data.itemReason13,
+                            "item14":this.data.item14==""?0:this.data.item14,
+                            "itemReason14":this.data.itemReason14,
+                            "item15":this.data.item15==""?0:this.data.item15,
+                            "itemReason15":this.data.itemReason15,
+                            "item16":this.data.item16==""?0:this.data.item16,
+                            "itemReason16":this.data.itemReason16,
+                            "other": this.data.other==""?0:this.data.other,
+                            "otherReason":this.data.otherReason,
+                            "lastmodified":this.data.lastmodified,
+                            "modifiedby":this.data.modifiedby,
+                    },
+                "userId":sessionStorage.getItem('userId')
+             }
+             if(this.form.AREAID==""||this.form.STATIONID==""||this.form.dateTime==""){
+                     window.vm.$message({
+                            type: 'error',
+                            message:'请选择输油处，输油站，日期',
+                            showClose: true,
+                            duration: 2000,
+                     });
+            }else{
+                 this.$myHttp.post('contractor/saveContractor',obj).then((res) => {
+                    if(res.success==true){
+                        window.vm.$message({
+                            type: 'success',
+                            message:res.msg,
+                            showClose: true,
+                            duration: 2000,
+                        });
+                    }
+                 });
+            }
+         }
+    },
+    watch: {
+            '$route' (to, from) { //监听路由是否变化
+                if(to.path != from.path){
+                    this.init();//重新加载数据
+                }
+            }
+    }, 
+}
+</script>
+<style scoped>
+.box{position: relative;width:100%;height: 100%;}
+.form{margin:2vh auto;width:98%;}
+.tableBox{width:98%;height:82vh;color:#000000;margin:2vh auto;font-size:13px;background: #fff;}
+.tableBox table{border-spacing: 0;border-collapse: collapse;}
+.export-btn{color: #fff;background-color: #409eff;border-color: #409eff;}
+#tableExport>table{width:100%;height: 100%;box-sizing: border-box;}
+.el-form-item{margin-bottom: 0!important;}
+.tableBox input{background:none;cursor: pointer;outline:none;color:#409eff;text-align: center;height: 100%;width:100%;vertical-align: middle;border:none;}
+.tableBox tr:first-child td input{text-align: left;}
+.tableBox tr td:first-child{text-align: center;}
+.tableBox tr:first-child td:first-child{text-align:left;}
+.tableBox tr td span{opacity: 0;width:0;display:flex;height:0;}
+.spInput{display: inline-block;text-overflow: ellipsis;white-space: nowrap;overflow: hidden;max-width: 100px;}
+</style>

@@ -1,0 +1,467 @@
+<template>
+   <div
+    class="station"
+  >
+        <div class="box">
+            <div class="leftTree">
+        <div class="title">管理处信息列表</div>
+        <el-tree
+            ref="vueTree"
+            :highlight-current="true"
+            :default-expanded-keys="treeExpandData"
+            :data="data"
+            node-key="GROUPCODE"
+            :current-node-key="currentNodekey"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+             accordion
+        ></el-tree>
+        </div>
+        <div class="rightBox">
+            <el-row type="flex" class="row-bg" justify="space-around">
+            <el-col>    
+                <div class="block">
+                        <span class="demonstration">周报日期</span>
+                        <el-date-picker style="width:270px"
+                            v-model="dateTime"
+                            :format='"第"+weekNum+"周("+time1+"~"+time2+")"'
+                            type="week"
+                            @change="changeDate"
+                            :picker-options="pickerOptions"
+                            placeholder="选择周">
+                        </el-date-picker>
+                        <el-button type="primary" @click="search()" v-if="weekPermission.includes('query')">查询</el-button>
+                </div>
+                </el-col>
+            <el-col>
+                <div class="grid-content bg-purple">  
+                    <el-button type="primary" icon="el-icon-plus" @click="add()" v-if="weekPermission.includes('add')">新增</el-button>
+                        <!--  -->
+                        <!-- <el-button  type="primary" icon="el-icon-edit" @click="operation('修改巡检周报')">修改</el-button> -->
+                </div>
+            </el-col>
+            </el-row>
+            <el-row>    
+            <div class="tableBox">
+                <el-table :default-sort = "{prop: 'STATE', order: 'ascending'}" height="calc(100vh - 250px)" :data="tableData.slice((currentPage - 1) * pageSize, currentPage*pageSize)" tooltip-effect="dark" border style="width: 100%"   :header-cell-style="{'text-align':'center'}" :cell-style="{'text-align':'center'}">
+                        <!-- <el-table-column type="selection"></el-table-column> -->
+                        <el-table-column  type="index" label="序号" width="50px;">
+                            <template slot-scope="scope">
+                                <span>{{(currentPage - 1) * pageSize + scope.$index + 1}}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column label="状态" width="150px;" sortable prop="STATE">
+                            <template slot-scope="scope">
+                                <template v-if="scope.row.STATE==0">
+                                     未审核
+                                </template>
+                                <template v-else-if="scope.row.STATE==null">
+                                    未填写
+                                </template>
+                                <template v-else>
+                                     已审核
+                                </template>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="PERSON_NAME" label="段长" width="100px;"></el-table-column>
+                        <el-table-column prop="WEEKCONTENT" label="周报内容"></el-table-column>
+                        <el-table-column prop="IMAGENUM" label="照片数量" width="50px;">
+                            <template slot-scope="scope">
+                                {{ scope.row.IMAGENUM || '' }}
+                             </template>
+                        </el-table-column>
+                        <el-table-column prop="INPUTDATE" label="填报时间"></el-table-column>
+                        <el-table-column prop="WEEKDATE" label="周报时间">
+                            <template slot-scope="scope">
+                                {{scope.row.WEEKDATE||''}}
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="REVIEWUSERNNAME" label="审核人" width="100px;">
+                             <template slot-scope="scope">
+                                {{ scope.row.REVIEWUSERNNAME || '' }}
+                             </template>
+                        </el-table-column>
+                        <el-table-column prop="REVIEWCOMMENT" label="审核意见"></el-table-column>
+                        <el-table-column prop="REVIEWDATE" label="审核时间">
+                            <template slot-scope="scope">
+                                {{ scope.row.REVIEWDATE || ''}}
+                             </template>
+                        </el-table-column>
+                        <el-table-column label="操作" width="300px;">
+                            <template slot-scope="scope">
+                                <template v-if="scope.row.STATE!=null">
+                                    <template v-if="scope.row.STATE==0">
+                                        <el-button type="primary" @click="editor(scope.row.WEEKLOGID,0)"  size="small" plain v-if="weekPermission.includes('approval')">审核</el-button>
+                                        <el-button type="primary" size="small" @click="editor(scope.row.WEEKLOGID,1)" plain  v-if="weekPermission.includes('update')">编辑</el-button>
+                                    </template>
+                                    <el-button type="primary" @click="look(scope.row.WEEKLOGID)"  size="small" plain v-if="weekPermission.includes('browse')">查看</el-button>
+                                    <template v-if="scope.row.STATE==0">
+                                        <el-button type="primary" @click="delet(scope.row.WEEKLOGID)" size="small"  plain  v-if="weekPermission.includes('delete')">删除</el-button>
+                                    </template>
+                                </template>
+                            </template>
+                        </el-table-column>
+                </el-table>
+            </div>
+            <div class="paginationBox">
+                <el-pagination
+                    background
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[10,15,20]"
+                    :page-size="pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total">
+                    </el-pagination>
+            </div>
+            </el-row>
+        </div>
+        <!-- 新增编辑弹框 -->
+        <detailReport
+            v-if='show'
+            :title='title'
+            :flag="flag"
+             :loading="loading"
+            @close='closeDetail'
+            :formobj='formobj'
+            @sub='submitDetail'
+        />
+        </div>
+   </div>
+</template>
+<script>
+import detailReport from '../../components/detailReport.vue';
+
+export default {
+    data() {
+        return {
+               data: [],
+               tableData:[],
+               dateTime:null,
+               loading: false,
+               show:false,
+               title:"增加巡检周报",
+               flag:0,
+               //multipleSelection: [],
+               defaultProps:{
+                    children: 'CHILDREN',
+                    label: 'GROUPNAME',
+                    value: 'GROUPCODE',
+               },
+               GROUPCODE:"",//输油站id
+               PARENTGROUPCODE:'',//输油处id
+               formobj:{},
+               currentPage: 1,
+               pageSize: 10,
+               total:0,
+               weekPermission:this.$Cookie.get("weekPermission"),
+               currentNodekey: "", //默认选中的节点树
+               treeExpandData:[], //自己定义的用于接收tree树id的数组
+               startDate:null,
+               endDate:null,
+               weekInfo:null,
+               time1:null,
+               time2:null,
+               weekNum:null,
+               pickerOptions: {//禁用今天之前的日期
+                'firstDayOfWeek': 1,
+                 disabledDate(time) {
+                    return time.getTime() > Date.now();
+                    }
+              },
+        }
+    },
+    components:{detailReport},
+    created() {
+        this.init();
+    },
+    methods: {
+        init(){
+           this.GROUPCODE="";
+           this.PARENTGROUPCODE="";
+           this.show=false;
+           this.dateTime=new Date();
+           this.changeDate(this.dateTime);
+           this.getTree();
+           //this.search();
+        },
+        //树节点
+        async getTree() {
+            await this.$myHttp.get('pointManage/getTreeList?userId=' + this.$Cookie.get('userId')).then((res) => {
+               this.data = res.result;
+               this.currentNodekey =this.data[0].CHILDREN[0].GROUPCODE;
+               this.$nextTick(() => {
+                    this.$refs.vueTree.setCurrentKey(this.currentNodekey); //一定要加这个选中了否则样式没有出来
+                    this.handleNodeClick(this.data[0].CHILDREN[0]);
+                    this.getRoleTreeRootNode(this.data[0].CHILDREN[0])
+               });
+               
+            });
+        },
+        getRoleTreeRootNode(CHILDREN) {
+           this.treeExpandData.push(CHILDREN)      
+        },
+        //点击树筛选table表格
+        handleNodeClick(data)
+        {    
+           if(data.PARENTGROUPCODE!=null){
+                this.PARENTGROUPCODE=data.PARENTGROUPCODE;
+                this.GROUPCODE=data.GROUPCODE;
+                this.search();
+           }else{
+                    window.vm.$message({
+                            type: 'error',
+                            message:'请选择一个输油站点',
+                            showClose: true,
+                            duration: 2000,
+                     });
+           }
+        },
+        handleSizeChange(val) {
+            this.pageSize=val;//每页多少条
+        },
+        handleCurrentChange(val) {
+            this.currentPage=val;//当前页
+        },
+        //删除
+        delet(id){
+                let contentType={
+                   headers:{'Content-Type':'application/json;charset=utf8'},
+                }
+                window.vm.$confirm('确定是否删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                       this.$myHttp.post('gpsweeklog/del',id,contentType).then((res) => {
+                               if (res.success) {
+                                    window.vm.$message({
+                                        type: 'success',
+                                        message: res.msg,
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                    this.tableData.forEach((v, i) => {
+                                        if(id == v.WEEKLOGID){
+                                            this.tableData.splice(i, 1);
+                                        }
+                                    })
+                                    this.total=this.tableData.length;
+                                    let currentPage = this.currentPage > Math.ceil(this.total/this.pageSize) ? Math.ceil(this.total/this.pageSize) : this.currentPage;
+                                    this.currentPage = this.currentPage < 1 ? 1 : currentPage;
+                                } else {
+                                    window.vm.$message({
+                                        type: 'error',
+                                        message: res.msg || '操作失败',
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                }
+                       });
+                })
+        },
+        //编辑
+       async editor(id,temp){//temp=1编辑temp=0审核
+            this.formobj= await this.$myHttp.get('gpsweeklog/getlog?id='+id).then((res)=>{
+              return res.result
+            })
+           this.show=true;
+           if(temp==1){
+              this.title="修改巡检周报";
+              this.flag=1;
+           }else{
+              this.title="审核巡检周报";
+              this.flag=0;
+           }
+        },
+        //新增
+        add(){
+            let obj={
+                "gpsWeekLog": {
+                    "groupCode":this.GROUPCODE,//输油站id
+                    "groupName": "",//输油站name
+                    "inputDate":"",//录入日期
+                    "pgroupCode":this.PARENTGROUPCODE,//输油处name
+                    "pgroupName": "",//输油处id
+                    "remark": "",//备注
+                    "reviewComment": "",//审核内容
+                    "reviewDate":"",//审核日期
+                    "reviewUserId": "",//审核人员id
+                    "state": "",//状态
+                    "userId":this.$Cookie.get("userId"),//巡线员id
+                    "userName":"",//巡线员name
+                    "weekContent": "",//周报内容
+                    "weekDate":this.dayjs(this.dateTime).format('YYYY-MM-DD HH:mm:ss'),//周报日期
+                    "weekLogId":"",//周报id
+                },
+                "fileList": []
+            };
+            this.formobj=Object.assign({},obj);
+            this.show=true;
+            this.title="增加巡检周报";
+            this.flag=1;
+        },
+        //查看
+        async look(id){
+            this.formobj= await this.$myHttp.get('gpsweeklog/getlog?id='+id).then((res)=>{
+              return res.result
+            })
+           this.show=true;
+           this.title="查看巡检周报";
+           this.flag=0;
+        },
+        async search(){
+           if(this.time1==null||this.time1==""){
+                window.vm.$message({
+                    type: 'error',
+                    message: '请选择日期',
+                    showClose: true,
+                    duration: 2000,
+                });
+                this.tableData=[];
+                return;
+           }else{
+                let url='gpsweeklog/getlogsbygroupCodeandinputDate?groupCode='+this.GROUPCODE+"&inputStartDate="+this.time1+"&inputEndDate="+this.time2+"&userid="+this.$Cookie.get("userId");
+                await  this.$myHttp.get(url).then((res)=>{
+                    let arr=res.result;
+                        if(arr.length>0){
+                            this.tableData=arr.map(v=>{
+                                return {...v,INPUTDATE:v.INPUTDATE==null?'':this.dayjs(v.INPUTDATE).format('YYYY-MM-DD HH:mm:ss'),WEEKDATE:v.WEEKDATE==null?'':this.changeWeek(v.WEEKDATE),REVIEWDATE:v.REVIEWDATE==null?'':this.dayjs(v.REVIEWDATE).format('YYYY-MM-DD HH:mm:ss')}
+                            })
+                        }else{
+                            this.tableData=[];
+                        }
+                        this.total=this.tableData.length;
+                        let currentPage = this.currentPage > Math.ceil(this.total/this.pageSize) ? Math.ceil(this.total/this.pageSize) : this.currentPage;
+                        this.currentPage = this.currentPage < 1 ? 1 : currentPage;
+                })
+           }
+        },
+        getAll(e){
+            let that=this;
+            that.loading=true;
+            console.log("aa="+this.loading);
+            return new Promise(resolve=>{
+                that.$myHttp.post('gpsweeklog/save',e).then((res) => {
+                        if (res.success) {
+                            window.vm.$message({
+                                type: 'success',
+                                message: '操作成功',
+                                showClose: true,
+                                duration: 2000,
+                            });
+                            if(e.reviewComment==""||e.reviewComment==null){
+                                   resolve();     
+                            }else{
+                                let obj={
+                                    "weekLogId":e.weekLogId,
+                                    "reviewComment":e.reviewComment,
+                                    "reviewUserId":this.$Cookie.get('userId'),
+                                    "reviewDate":new Date()
+                                };
+                                that.$myHttp.post('gpsweeklog/auditlog',obj).then((res) => {
+                                    resolve();
+                                });
+                            }
+                        } else {
+                            window.vm.$message({
+                                type: 'error',
+                                message: res.msg || '操作失败',
+                                showClose: true,
+                                duration: 2000,
+                            });
+                        }
+                });
+            })
+        },
+        async submitDetail(e)
+        {
+            await this.getAll(e);
+            console.log("cc="+this.loading);
+
+            this.loading=false;
+
+            console.log("dd="+this.loading);
+            this.show = false;
+            this.search();
+        },
+        closeDetail(){
+          this.show=false;
+        },
+        changeWeek(time){
+            let val=new Date(time.substring(0,10));
+            this.startDate=this.dayjs(val).startOf("isoWeek").format("YYYY-MM-DD");
+            this.endDate=this.dayjs(val).endOf("isoWeek").format("YYYY-MM-DD");
+            return this.getWeekInfoInYear(this.startDate,this.endDate,1);
+        },
+        changeDate(val){
+           this.time1=this.dayjs(this.dateTime).startOf("isoWeek").format("YYYY-MM-DD");
+           this.time2=this.dayjs(this.dateTime).endOf("isoWeek").format("YYYY-MM-DD");
+           this.getWeekInfoInYear(this.time1,this.time2,0);
+        },
+        getWeekInfoInYear(startTime, endTime,flag) {
+                var startTimeObj = this.dayjs(startTime);
+                var endTimeObj = this.dayjs(endTime);
+                for (var year = this.getYear(startTime); year <= this.getYear(endTime); year++) {
+                    var totalWeek = this.dayjs(year).isoWeeksInYear();
+                    for (var i = 1; i <= totalWeek; i++) {
+                        var pass = true;
+                        
+                        // 获取当前星期的星期一和星期天日期
+                        var start = this.dayjs(year+'01-01').week(i).isoWeekday(1).format('YYYY-MM-DD');
+                        var end = this.dayjs(year+'01-01').week(i).isoWeekday(7).format('YYYY-MM-DD');
+
+                        //如果起始时间大于当前区间开始时间，小于区间结束时间，将区间开始时间 = 起始时间
+                        if (startTimeObj.isSameOrAfter(this.dayjs(start)) && startTimeObj.isSameOrBefore(this.dayjs(end))) {
+                            start = startTimeObj.format('YYYY-MM-DD');
+                        }
+
+                        //如果终止时间大于当前区间开始时间，小于区间结束时间，将区间结束时间 = 终止时间
+                        if (endTimeObj.isSameOrAfter(this.dayjs(start)) && endTimeObj.isSameOrBefore(this.dayjs(end))) {
+                            end = endTimeObj.format('YYYY-MM-DD');
+                        }
+
+                        //如果当前区间结束时间小于起始时间 或者 当前区间开始时间大于结束时间 则不落入范围内排除
+                        if (this.dayjs(end).isBefore(startTime) || this.dayjs(start).isAfter(endTime)) {
+                            pass = false;
+                        }
+
+                        if (pass) {
+                            if(flag==1){
+                              this.weekInfo=i;
+                            }
+                            if(flag==0){
+                                this.weekNum=i;
+                            }
+                        }
+                    }
+                }
+                if(flag==1){
+                       return "第"+this.weekInfo+"周("+this.startDate+"~"+this.endDate+")";
+                }
+        },
+        getYear(date) {
+                return this.dayjs(date).year();
+        }
+    },
+    watch: {
+            '$route' (to, from) { //监听路由是否变化
+                if(to.path != from.path){
+                    this.init();//重新加载数据
+                }
+            }
+    },    
+}
+</script>
+<style lang="less">
+@import 'station.less';
+ .el-row {
+    margin-bottom: 20px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  .paginationBox{margin:20px auto;float:right;color:#ffffff;}
+  .box{position: relative;height: 100%;}
+</style>

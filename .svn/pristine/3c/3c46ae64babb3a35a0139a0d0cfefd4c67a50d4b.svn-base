@@ -1,0 +1,600 @@
+<template>
+    <div class="box">
+        <el-form :inline="true" :model="form" class="form">
+            <el-form-item label="输油处：" prop="AREAID">
+               <el-select
+                    size="small"
+                    v-model="form.AREAID"
+                    placeholder="请选择输油处"
+                    @change='changePlace'
+                    >
+                    <el-option
+                        v-for='item in placelist'
+                        :key='item.GROUPCODE'
+                        :label="item.GROUPNAME"
+                        :value="item.GROUPCODE"
+                    ></el-option>
+                </el-select>
+          </el-form-item>
+          <el-form-item label="输油站：" prop="STATIONID">
+            <el-select
+                size="small"
+                v-model="form.STATIONID"
+                placeholder="请选择输油站"
+                @change="changePerson"
+                >
+                <el-option
+                    v-for='item in stationlist'
+                    :key='item.GROUPCODE'
+                    :label="item.GROUPNAME"
+                    :value="item.GROUPCODE"
+                ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="人员：" prop="person">
+              <el-select size="small" v-model="form.person" placeholder="请选择考核人员" @change="getName">
+                    <el-option
+                        v-for='item in personList'
+                        :key='item.PERSON_ID'
+                        :label="item.PERSON_NAME"
+                        :value="item.PERSON_ID"
+                    ></el-option>
+              </el-select>
+          </el-form-item>
+          <el-form-item label="日期：" prop="dateTime">
+              <el-date-picker size="small" v-model="form.dateTime" type="month" placeholder="选择日期"  format="yyyy-MM" value-format="yyyy-MM"   @change="selectTime"></el-date-picker>
+          </el-form-item>
+            <el-form-item>
+                <el-button size="small" type="primary" @click="search()">查询</el-button>
+            </el-form-item>
+            <el-form-item>
+                <el-button  size="small" type="primary" @click="save()">保存</el-button>
+            </el-form-item>
+            <el-form-item>
+                <el-button size="small" type="primary"  @click="exportToExcel">导出</el-button>
+            </el-form-item>
+        </el-form>
+        <div class="tableBox">
+             <el-scrollbar style="height:100%;" class="spScollor">
+                <table  border= "1 "  id="tableExport">
+                    <tr>
+                        <td colspan="2">被考核人：<em style="color:red;font-style:normal;">{{personName}}</em></td> 
+                        <td  colspan="2">考核人：<input type="text" v-model="data.assPerson" style="display:inline-block;width:80%;"><span>{{data.assPerson}}</span></td> 
+                        <td  colspan="2">考核得分：<em style="color:red;font-style:normal;">{{data.score}}</em></td> 
+                    </tr>
+                    <tr>
+                        <th width="5%">序号</th>
+                        <th width="10%">考核内容</th>
+                        <th width="45%">奖惩量化标准</th>
+                        <th width="10%">考核频次</th>
+                        <th width="10%">扣分</th>
+                        <th width="20%">扣分原因</th>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>劳保着装</td>
+                        <td>未按要求着装的，每缺少一件扣1分，</td>
+                        <td>随时</td>
+                        <td><input type="number" v-model="data.item1" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item1}}</span></td>
+                        <td><input type="text" v-model="data.itemReason1"><span>{{data.itemReason1}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>巡检必经点完成情</td>
+                        <td>必经点打点率和轨迹相结合的形式，月打点率低于98%的，回查轨迹，如排除不可抗力等因素外，有轨迹不符合要求者，视情况扣分1~10分</td>
+                        <td>每天</td>
+                        <td><input type="number" v-model="data.item2" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item2}}</span></td>
+                        <td><input type="text" v-model="data.itemReason2"><span>{{data.itemReason2}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>管道巡检情况抽查</td>
+                        <td>未按时反馈问题，扣5分。</td>
+                        <td>随时</td>
+                        <td><input type="number" v-model="data.item3" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item3}}</span></td>
+                        <td><input type="text" v-model="data.itemReason3"><span>{{data.itemReason3}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>巡检频次</td>
+                        <td>巡检频次每缺少一次扣2分，</td>
+                        <td>每天</td>
+                        <td><input type="number" v-model="data.item4" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item4}}</span></td>
+                        <td><input type="text" v-model="data.itemReason4"><span>{{data.itemReason4}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>巡检时长</td>
+                        <td>每天巡检有效时长小于3小时，扣2分。</td>
+                        <td>每天</td>
+                        <td><input type="number" v-model="data.item5" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item5}}</span></td>
+                        <td><input type="text" v-model="data.itemReason5"><span>{{data.itemReason5}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>巡检时间段</td>
+                        <td>未在规定时间内巡检扣1分。（特殊情况报备输油部同意除外）</td>
+                        <td>每天</td>
+                        <td><input type="number" v-model="data.item6" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item6}}</span></td>
+                        <td><input type="text" v-model="data.itemReason6"><span>{{data.itemReason6}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>巡检设备</td>
+                        <td>故意损坏或者丢失巡检设备，扣10分。</td>
+                        <td></td>
+                        <td><input type="number" v-model="data.item7" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item7}}</span></td>
+                        <td><input type="text" v-model="data.itemReason7"><span>{{data.itemReason7}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>8</td>
+                        <td>巡检记录</td>
+                        <td>未填写巡检记录，扣1分。巡检记录不规范，扣0.5分</td>
+                        <td>随时</td>
+                        <td><input type="number" v-model="data.item8" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item8}}</span></td>
+                        <td><input type="text" v-model="data.itemReason8"><span>{{data.itemReason8}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>应知应会内容</td>
+                        <td>不掌握应知应会内容，扣1分。</td>
+                        <td>随时</td>
+                        <td><input type="number" v-model="data.item9" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item9}}</span></td>
+                        <td><input type="text" v-model="data.itemReason9"><span>{{data.itemReason9}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>10</td>
+                        <td>其他人代为巡检</td>
+                        <td>由其他人代为巡检，且未征得输油站和线路段长同意，每发现一次扣10分。</td>
+                        <td>随时</td>
+                        <td><input type="number" v-model="data.item10" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item10}}</span></td>
+                        <td><input type="text" v-model="data.itemReason10"><span>{{data.itemReason10}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>11</td>
+                        <td>参加培训或者会议情况</td>
+                        <td>未按照要求参加管道巡线员培训或者会议，每缺席一次扣5分。</td>
+                        <td>定期</td>
+                        <td><input type="number" v-model="data.item11" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item11}}</span></td>
+                        <td><input type="text" v-model="data.itemReason11"><span>{{data.itemReason11}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>12</td>
+                        <td>地面标识丢失</td>
+                        <td>每发现地面标识损坏或丢失未及时汇报，扣5分。</td>
+                        <td>定期</td>
+                        <td><input type="number" v-model="data.item12" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item12}}</span></td>
+                        <td><input type="text" v-model="data.itemReason12"><span>{{data.itemReason12}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>13</td>
+                        <td>地面标识维护</td>
+                        <td>地面标识损坏歪斜、移位、鸟粪堆积、桩体周围1米存在杂物杂草等，每发现一起扣1分。</td>
+                        <td>定期</td>
+                        <td><input type="number" v-model="data.item13" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item13}}</span></td>
+                        <td><input type="text" v-model="data.itemReason13"><span>{{data.itemReason13}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>14</td>
+                        <td>管道周围重要设施情况</td>
+                        <td>管道左右两侧5m范围内尤其是沟渠、水工保护不得出现杂物，杂物主要指生活垃圾、建筑垃圾、废品、树木和秸秆等。发现存在一处扣1分。</td>
+                        <td>定期</td>
+                        <td><input type="number" v-model="data.item14" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item14}}</span></td>
+                        <td><input type="text" v-model="data.itemReason14"><span>{{data.itemReason14}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>15</td>
+                        <td>管道隐患</td>
+                        <td>管道存在露管、光缆裸露、水毁、水工保护损坏或者占压等隐患未处理且未上报，每发现一起扣10分。</td>
+                        <td>定期</td>
+                        <td><input type="number" v-model="data.item15" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item15}}</span></td>
+                        <td><input type="text" v-model="data.itemReason15"><span>{{data.itemReason15}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>16</td>
+                        <td>第三方施工</td>
+                        <td>未收集到第三方施工信息的，且施工进入到管道50米范围内的，扣罚巡线承揽费100元；未收集到第三方施工信息的，施工进入到5~50米范围内的，对管道光缆未造成伤害的，扣罚巡线承揽费500元；未收集到第三方施工信息的，扣除该段当月巡线承揽费，并解除该段承揽协议。</td>
+                        <td>定期</td>
+                        <td><input type="number" v-model="data.item16" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.item16}}</span></td>
+                        <td><input type="text" v-model="data.itemReason16"><span>{{data.itemReason16}}</span></td>
+                    </tr>
+                    <tr>
+                        <td rowspan="6">17</td>
+                        <td rowspan="6">其他扣分项目</td>
+                        <td>
+                            管道加密巡护,特殊时期或者特殊原因，未按照要求进行加密巡护，每发生一次扣5分。能够按要求完成加密巡查任务的加5分。
+                        </td>
+                        <td>按要求</td>
+                        <td rowspan="6"><input type="number" v-model="data.minusScore" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.minusScore}}</span></td>
+                        <td rowspan="6"><input type="text" v-model="data.minusScoreReason"><span>{{data.minusScoreReason}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>管道泄漏未及时发现,管道泄漏未及时发现，导致延误抢修，管辖段每发生一起扣50分。</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>防打孔盗油,管辖段每发生一起扣50分。</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>第三方施工导致光缆中断,管辖段每发生一起扣50分。</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>第三方施工损伤管道损伤,管辖段每发生一起扣50分。</td>
+                        <td>发生时</td>
+                    </tr>
+                     <tr>
+                         <td>新发生管道占压,管辖段每发生一起扣50分。</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>18</td>
+                        <td>其他加分项目</td>
+                        <td>按照巡检要求，完成全部巡检任务。奖励20分。</td>
+                        <td>发生时</td>
+                        <td><input type="number" v-model="data.addScore" @blur="changeScore()" placeholder="点击输入" oninput="if(value > 100 || value < 0 ){value = ''}" min="0" max="100"><span>{{data.addScore}}</span></td>
+                        <td><input type="text" v-model="data.addScoreReason"><span>{{data.addScoreReason}}</span></td>
+                    </tr>
+                    <tr>
+                        <td rowspan="11">19</td>
+                        <td rowspan="11">奖励金额</td>
+                        <td>及时发现管道泄漏,每发生一起奖励1000-5000元。</td>
+                        <td>发生时</td>
+                        <td rowspan="11">
+                            <input type="number" v-model="data.addAmount"  @blur="changeAmount" placeholder="点击输入"><span>{{data.addAmount}}</span>
+                        </td>
+                        <td rowspan="11"><input type="text" v-model="data.addAmountReason"><span>{{data.addAmountReason}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>及时发现管道打孔盗油未遂事件,每发生一起奖励1000-5000元。</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>及时发现危机管道的安全隐患,根据隐患等级不同，进行相应奖励</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>年度未发生打孔盗油事件,分公司根据情况适当奖励</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>综合协调,在管道占压清理、管道临时征地、管道第三方施工协调过程中发挥重要作用，奖励100-1000元</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>突发事件处置,在管道突发事件处置过程中发挥重要作用，奖励1000-50000元</td>
+                        <td>发生时</td>
+                    </tr>
+                    <tr>
+                        <td>年度未发生光缆中断事件,输油部根据情况适当奖励</td>
+                        <td>每年</td>
+                    </tr>
+                    <tr>
+                        <td>年度未发生新增违法占压,输油部根据情况适当奖励</td>
+                        <td>每年</td>
+                    </tr>
+                    <tr>
+                        <td>年度未发生第三方施工损伤,输油部根据情况适当奖励</td>
+                        <td>每年</td>
+                    </tr>
+                    <tr>
+                        <td>加密巡护奖励,高质量落实输油部特殊时期重点部位加密巡护要求，每月奖励100-400元。</td>
+                        <td>每月</td>
+                    </tr>
+                    <tr>
+                        <td>其他方面综合表现</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td>总分</td>
+                        <td colspan="5"><em style="color:red;font-style:normal;">{{data.score}}</em></td>
+                    </tr>
+                    <tr>
+                        <td>基础金额</td>
+                        <td colspan="5"><input type="number" v-model="data.baseAmount" style="text-align:left;"  @blur="changeAmount" placeholder="点击输入"><span>{{data.baseAmount}}</span></td>
+                    </tr>
+                    <tr>
+                        <td>总金额</td>
+                        <td colspan="5"><input type="number" v-model="data.amount" disabled style="color:red;text-align:left;"><span>{{data.amount}}</span></td>
+                    </tr>
+                </table>
+            </el-scrollbar>
+        </div>
+    </div>
+</template>
+<script>
+import { tableToExcel } from '../../libs/xml';
+export default {
+     data(){
+       return{
+          form: {
+                AREAID: '',
+                STATIONID: '',
+                dateTime:"",
+                person:"",
+          },
+          placelist:[],
+          stationlist:[],
+          personList:[],
+          objForm:{
+            "serialid":0,
+            "areaid":"",
+            "stationid":"",
+            "assDate":"",
+            "beAssPerson":"",
+            "assPerson":"",
+            "score":"",
+            "item1":"",
+            "itemReason1": "",
+            "item2": "",
+            "itemReason2":"",
+            "item3":"",
+            "itemReason3":"",
+            "item4":"",
+            "itemReason4":"",
+            "item5":"",
+            "itemReason5":"",
+            "item6":"",
+            "itemReason6":"",
+            "item7":"",
+            "itemReason7":"",
+            "item8":"",
+            "itemReason8": "",
+            "item9": "",
+            "itemReason9":"",
+            "item10":"",
+            "itemReason10":"",
+            "item11":"",
+            "itemReason11": "",
+            "item12":"",
+            "itemReason12":"",
+            "item13":"",
+            "itemReason13": "",
+            "item14": "",
+            "itemReason14":"",
+            "item15":"",
+            "itemReason15": "",
+            "item16":"",
+            "itemReason16":"",
+            "minusScore": "",
+            "minusScoreReason":"",
+            "addScore":"",
+            "addScoreReason":"",
+            "addAmount":"",
+            "addAmountReason":"",
+            "baseAmount":"",
+            "amount": "",
+            "lastmodified": "",
+            "modifiedby":"",
+        },
+        data:{},
+        personName:'',
+        personName1:"",
+        AREAName:'',//根据输油处名称判断是否为珠江三角区
+       }
+    },
+    mounted(){
+        this.init();
+    },
+    methods:{
+        init(){
+            this.form.AREAID="";
+            this.form.dateTime="";
+            this.personName="";
+            this.personName1="";
+            this.data=Object.assign({},this.objForm);
+            this.getAllArea();//获取输油处
+            this.changePlace(this.form.AREAID);//根据输油处获取输油站
+        },
+         //获取输油处
+        getAllArea(){
+            let url='pipe/getAreaList?userId=' + sessionStorage.getItem('userId');
+            this.$myHttp.get(url).then((res) => {
+                this.placelist = res.result;
+            });
+            this.personName="";
+            this.data=Object.assign({},this.objForm);
+        },
+        //获取输油站
+        changePlace(val){
+            this.form.STATIONID="";
+            this.form.person="";
+            let url='pipe/getStationList?userId=' +sessionStorage.getItem('userId') +'&groupCode=' +val;
+            this.$myHttp.get(url).then((res) => {
+                this.stationlist = res.result;
+            });
+            this.personName="";
+            this.data=Object.assign({},this.objForm);
+        },
+        //获取人员
+        changePerson(val){
+            this.form.person="";
+                let url='contractorMan/getPersonList?stationId=' +val;
+                this.$myHttp.get(url).then((res) => {
+                   this.personList = res.result;
+                });
+            this.personName="";
+            this.data=Object.assign({},this.objForm);
+        },
+        selectTime(val){
+           if(this.form.AREAID!=""&&this.form.STATIONID!=""&&this.form.dateTime!=""&&this.form.person!=""){
+                 this.search();
+            }else{
+                this.personName="";
+                this.data=Object.assign({},this.objForm);
+            }
+        },
+        getName(val){
+            let obj={}
+            obj=this.personList.find((item)=>{
+               return item.PERSON_ID===val;
+            })
+            this.personName1=obj.PERSON_NAME;
+            if(this.form.AREAID!=""&&this.form.STATIONID!=""&&this.form.dateTime!=""&&this.form.person!=""){
+                 this.search();
+            }else{
+                this.personName="";
+                this.data=Object.assign({},this.objForm);
+            }
+        },
+        changeAmount(){
+           this.data.amount=Number(this.data.baseAmount)+Number(this.data.addAmount);
+        },
+        exportToExcel() {
+            var tab = document.getElementById('tableExport')
+            tableToExcel('tableExport', '巡线承揽人考核标准');
+         },
+         changeScore(){
+                this.data.score=100+Number(this.data.addScore)-(Number(this.data.item1)+Number(this.data.item2)+Number(this.data.item3)+Number(this.data.item4)+Number(this.data.item5)+Number(this.data.item6)+Number(this.data.item7)+
+                Number(this.data.item8)+Number(this.data.item9)+Number(this.data.item10)+Number(this.data.item11)+Number(this.data.item12)+Number(this.data.item13)+Number(this.data.item14)+Number(this.data.item15)+Number(this.data.item16)+Number(this.data.minusScore))
+                this.placelist.map((item)=>{
+                    if(this.form.AREAID==item.GROUPCODE){
+                        this.AREAName=item.GROUPNAME;
+                    }
+                })
+                if(this.data.score>=95){
+                    if(this.AREAName.indexOf("广东")==0){
+                        this.data.baseAmount=2500;
+                    }else{
+                        this.data.baseAmount=2300;
+                    }
+                }else if(this.data.score>=80&&this.data.score<95){
+                    if(this.AREAName.indexOf("广东")==0){
+                        this.data.baseAmount=2200;
+                    }else{
+                        this.data.baseAmount=2000;
+                    }
+                }else if(this.data.score>=60&&this.data.score<=79){
+                    if(this.AREAName.indexOf("广东")==0){
+                        this.data.baseAmount=2000;
+                    }else{
+                        this.data.baseAmount=1500;
+                    }
+                }else{
+                    if(this.AREAName.indexOf("广东")==0){
+                        this.data.baseAmount=-1000;
+                    }else{
+                        this.data.baseAmount=-750;
+                    }
+                }
+                this.changeAmount();
+        },
+         search(){
+            if(this.form.AREAID==""||this.form.STATIONID==""||this.form.dateTime==""||this.form.person==""){
+                     window.vm.$message({
+                            type: 'error',
+                            message:'请选择输油处，输油站，人员，日期',
+                            showClose: true,
+                            duration: 2000,
+                     });
+            }else{
+                this.personName=this.personName1;
+                this.$myHttp.get('contractorMan/getInfo?assDate='+this.form.dateTime+'&userId='+this.form.person).then((res) => {
+                    if(res.result!=null){
+                        this.data=res.result;
+                    }else{
+                        this.data=Object.assign({},this.objForm);
+                    }
+                });
+            }
+         },
+         save(){
+             if(this.form.AREAID==""||this.form.STATIONID==""||this.form.dateTime==""||this.form.person==""){
+                     window.vm.$message({
+                            type: 'error',
+                            message:'请选择输油处，输油站，人员，日期',
+                            showClose: true,
+                            duration: 2000,
+                     });
+            }else{
+                     let obj={
+                            "gpsContractMan": {
+                                "addAmount":this.data.addAmount==""?0:this.data.addAmount,
+                                "addAmountReason":this.data.addAmountReason,
+                                "addScore":this.data.addScore==""?0:this.data.addScore,
+                                "addScoreReason":this.data.addScoreReason,
+                                "amount":this.data.amount==""?0:this.data.amount,
+                                "areaid":this.form.AREAID,
+                                "assDate":this.form.dateTime,
+                                "assPerson":this.data.assPerson,
+                                "baseAmount":this.data.baseAmount==""?0:this.data.baseAmount,
+                                "beAssPerson":this.form.person,
+                                "item1":this.data.item1==""?0:this.data.item1,
+                                "item10": this.data.item10==""?0:this.data.item10,
+                                "item11": this.data.item11==""?0:this.data.item11,
+                                "item12": this.data.item12==""?0:this.data.item12,
+                                "item13":this.data.item13==""?0:this.data.item13,
+                                "item14":this.data.item14==""?0:this.data.item14,
+                                "item15": this.data.item15==""?0:this.data.item15,
+                                "item16":this.data.item16==""?0:this.data.item16,
+                                "item2": this.data.item2==""?0:this.data.item2,
+                                "item3":this.data.item3==""?0:this.data.item3,
+                                "item4": this.data.item4==""?0:this.data.item4,
+                                "item5": this.data.item5==""?0:this.data.item5,
+                                "item6": this.data.item6==""?0:this.data.item6,
+                                "item7": this.data.item7==""?0:this.data.item7,
+                                "item8": this.data.item8==""?0:this.data.item8,
+                                "item9": this.data.item9==""?0:this.data.item9,
+                                "itemReason1": this.data.itemReason1,
+                                "itemReason10":this.data.itemReason10,
+                                "itemReason11":this.data.itemReason11,
+                                "itemReason12":this.data.itemReason12,
+                                "itemReason13":this.data.itemReason13,
+                                "itemReason14":this.data.itemReason14,
+                                "itemReason15":this.data.itemReason15,
+                                "itemReason16":this.data.itemReason16,
+                                "itemReason2":this.data.itemReason2,
+                                "itemReason3":this.data.itemReason3,
+                                "itemReason4": this.data.itemReason4,
+                                "itemReason5":this.data.itemReason5,
+                                "itemReason6":this.data.itemReason6,
+                                "itemReason7":this.data.itemReason7,
+                                "itemReason8":this.data.itemReason8,
+                                "itemReason9":this.data.itemReason9,
+                                "lastmodified":this.data.lastmodified,
+                                "minusScore": this.data.minusScore==""?0:this.data.minusScore,
+                                "minusScoreReason": this.data.minusScoreReason,
+                                "modifiedby":this.data.modifiedby,
+                                "score":this.data.score==""?0:this.data.score,
+                                "serialid": this.data.serialid,
+                                "stationid":this.form.STATIONID
+                            },
+                            "userId": sessionStorage.getItem('userId')
+                 };
+                 this.$myHttp.post('contractorMan/saveContractMan',obj).then((res) => {
+                    if(res.success==true){
+                        window.vm.$message({
+                            type: 'success',
+                            message:res.msg,
+                            showClose: true,
+                            duration: 2000,
+                        });
+                    }
+                 });
+            }
+         }
+    },
+    watch: {
+            '$route' (to, from) { //监听路由是否变化
+                if(to.path != from.path){
+                    this.init();//重新加载数据
+                }
+            }
+    },    
+}
+</script>
+<style scoped>
+.box{position: relative;width:100%;height: 100%;}
+.form{margin:2vh auto;width:98%;}
+.tableBox{width:98%;height:82vh;color:#000000;margin:2vh auto;font-size:13px;background: #fff;}
+.tableBox table{border-spacing: 0;border-collapse: collapse;}
+.export-btn{color: #fff;background-color: #409eff;border-color: #409eff;}
+#tableExport{width:100%;height: 100%;box-sizing: border-box;}
+.el-form-item{margin-bottom: 0!important;}
+.tableBox input{background:none;cursor: pointer;outline:none;color:#26f4ff;text-align: center;height: 100%;width:100%;vertical-align: middle;border:none;}
+.tableBox tr:first-child td input{text-align: left;}
+.tableBox tr td span{opacity: 0;display: inline-block;width:0;height: 0;}
+.addAmount{display:inline-block;max-width:100px;}
+.spInput{display: inline-block;text-overflow: ellipsis;white-space: nowrap;overflow: hidden;max-width: 100px;}
+</style>

@@ -1,0 +1,870 @@
+<template>
+  <div class="addList"  
+    v-loading="loading"
+    element-loading-text="提交中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)">
+    <div class='addTable'>
+      <div class='title'>
+        {{title}}
+        <span
+          class="close"
+          @click="cancel"
+        >{{"×"}}</span>
+      </div>
+      <div class="formbox">
+        <el-form
+          ref="ruleForm"
+          :model="form"
+          label-width="140px"
+          :rules="rules"
+        >
+          <el-form-item label="输油处：" prop="AREAID">
+               <template v-if="flag!=0">
+                 <el-select
+                    size="small"
+                    v-model="form.AREAID"
+                    placeholder="请选择输油处"
+                    @change='changePlace'
+                    :disabled="title == '修改段长信息'?true:false"
+                    >
+                    <el-option
+                        v-for='item in placelist'
+                        :key='item.GROUPCODE'
+                        :label="item.GROUPNAME"
+                        :value="item.GROUPCODE"
+                    ></el-option>
+                </el-select>
+               </template>
+               <template v-else>
+                <span class="lookSpan">{{form.AREANAME}}</span>
+              </template>
+          </el-form-item>
+
+          <el-form-item label="输油站：" prop="STATIONID">
+            <template v-if="flag!=0">
+               <el-select
+                 size="small"
+                 v-model="form.STATIONID"
+                 placeholder="请选择输油站"
+                  @change="changeStation"
+                  :disabled="title == '修改段长信息'?true:false"
+                    >
+                    <el-option
+                        v-for='item in stationlist'
+                        :key='item.GROUPCODE'
+                        :label="item.GROUPNAME"
+                        :value="item.GROUPCODE"
+                    ></el-option>
+                </el-select>
+            </template>
+            <template v-else>
+                 <span class="lookSpan">{{form.STATIONNAME}}</span>
+            </template>
+          </el-form-item>
+          <el-form-item label="所属管段：" prop="PID">
+            <template v-if="flag!=0">
+                <el-select
+                    size="small"
+                    v-model="form.PID"
+                    placeholder="请选择所属管段"
+                    @change="changeRoute"
+                    :disabled="title == '修改段长信息'?true:false"
+                    >
+                    <el-option
+                        v-for='item in routelist'
+                        :key='item.SERIALID'
+                        :label="item.NAME"
+                        :value="item.SERIALID"
+                    ></el-option>
+                </el-select>
+            </template>
+            <template v-else>
+                <span class="lookSpan">{{form.PIPENAME}}</span>
+            </template>
+          </el-form-item>
+          <el-form-item label="第三方施工点：" class="small" prop="dsfTypes">
+                <template v-if="flag!=0">
+                   <el-select 
+                      size="small"
+                      v-model="dsfTypes"
+                      placeholder="请选择第三方施工点数"
+                      multiple  
+                      collapse-tags
+                      @change="getDsf"
+                    >
+                      <!-- <el-checkbox :style="selfstyle" v-model="dsfCk" @change='selectAllDsf'>全选</el-checkbox> -->
+                      <el-option v-for="dsf in dsfList" :label="dsf.MILEAGEID" :value="dsf.SERIALID+''" :key="dsf.SERIALID"></el-option>
+                    </el-select>
+                </template>
+                <template v-else>
+                      <template v-if="form.DSFNAME!=null&&form.DSFNAME!=''">
+                          <span v-for="item in form.DSFNAME.split(',')" :key="item" class="lookSpan spanItem" @click="getInfo(item)">
+                            {{item}}
+                          </span>
+                      </template>
+                </template>
+          </el-form-item>
+          <el-form-item label="高风险段：" prop="gfxTypes">
+                 <template v-if="flag!=0">
+                     <el-select 
+                      size="small"
+                      v-model="gfxTypes"
+                      placeholder="请选择高风险段数"
+                      multiple  
+                      collapse-tags
+                      @change="getGfx"
+                    >
+                      <!-- <el-checkbox :style="selfstyle" v-model="gfxCk" @change='selectAllGfx'>全选</el-checkbox> -->
+                      <el-option v-for="gfx in gfxList" :label="gfx.NAME" :value="gfx.SERIALID+''" :key="gfx.SERIALID"></el-option>
+                    </el-select>
+                 </template>
+                 <template v-else>
+                     <template v-if="form.GFXNAME!=null&&form.GFXNAME!=''">
+                        <span v-for="item in form.GFXNAME.split(',')" :key="item" class="lookSpan spanItem" @click="getInfo2(item,'gfx')">
+                          {{item}}
+                        </span>
+                     </template>
+                 </template>
+           </el-form-item>
+           <el-form-item label="高后果区：" prop="ghgTypes">
+                <template v-if="flag!=0">
+                    <el-select 
+                      size="small"
+                      v-model="ghgTypes"
+                      placeholder="请选择高后果区数"
+                      multiple  
+                      collapse-tags
+                      @change="getGhg"
+                    >
+                      <!-- <el-checkbox :style="selfstyle" v-model="ghgCk" @change='selectAllGhg'>全选</el-checkbox> -->
+                      <el-option v-for="ghg in ghgList" :label="ghg.NAME" :value="ghg.SERIALID+''" :key="ghg.SERIALID"></el-option>
+                    </el-select>
+                </template>
+                <template v-else>
+                    <template v-if="form.GHGNAME!=null&&form.GHGNAME!=''">
+                        <span v-for="item in form.GHGNAME.split(',')" :key="item" class="lookSpan spanItem" @click="getInfo2(item,'ghg')">
+                            {{item}}
+                        </span>
+                    </template>
+                </template>
+           </el-form-item>
+           <el-form-item label="段长类型：" prop="MINATYPE">
+              <template v-if="flag!=0">
+                  <el-select
+                    size="small"
+                    v-model="form.MINATYPE"
+                    placeholder="请选择类型"
+                    >
+                    <el-option
+                        v-for='item in dzTypes'
+                        :key='item.CODEID'
+                        :label="item.CODENAME"
+                        :value="item.CODEID"
+                    ></el-option>
+                </el-select>
+              </template>
+              <template v-else>
+                 <span class="lookSpan" v-for="(item,index) in dzTypes" :key="index">
+                    <template v-if="item.CODEID==form.MINATYPE">{{item.CODENAME}}</template>
+                 </span>
+              </template>
+          </el-form-item>
+           <el-form-item label="段长：" prop="USERID">
+              <template v-if="flag!=0">
+                  <el-select
+                    size="small"
+                    v-model="form.USERID"
+                    placeholder="请选择段长"
+                    @change="changePerson"
+                    v-loading='selectloading'
+                    >
+                    <el-option
+                        v-for='item in personlist'
+                        :key='item.PERSON_ID'
+                        :label="item.PERSON_NAME"
+                        :value="item.PERSON_ID"
+                    ></el-option>
+                </el-select>
+              </template>
+              <template v-else>
+                 <span class="lookSpan">{{form.PERSONNAME}}</span>
+              </template>
+          </el-form-item>
+          <el-form-item label="联系方式：" prop="PHONE">
+            <template v-if="flag!=0">
+               <el-input
+                  v-model="form.PHONE"
+                  size="small"
+                  placeholder="请输入联系方式"
+                ></el-input>
+            </template>
+            <template v-else>
+               <span class="lookSpan">{{form.PHONE}}</span>
+            </template>
+          </el-form-item>
+          <el-form-item label="巡线员：" prop="xxyList">
+              <template v-if="flag!=0">
+                   <el-select 
+                      size="small"
+                      v-model="xxyList"
+                      placeholder="请选择巡线员"
+                      multiple  
+                      collapse-tags
+                      @change="getXxy"
+                    >
+                      <el-option v-for="item in personlist2" :label="item.PERSON_NAME" :value="item.PERSON_ID+''" :key="item.PERSON_ID"></el-option>
+                    </el-select>
+                </template>
+                <template v-else>
+                      <template v-if="form.PERSONIDS!=null&&form.PERSONIDS!=''">
+                          <span v-for="item in form.PERSONIDS.split(',')" :key="item" class="lookSpan spanItem">
+                            <template v-for="val in personlist2">
+                              <template v-if="val.PERSON_ID==item">
+                                {{val.PERSON_NAME}}
+                              </template>
+                            </template>
+                          </span>
+                      </template>
+                </template>
+          </el-form-item>
+          <el-form-item label="备注：" prop="NOTE">
+            <template v-if="flag!=0">
+               <el-input
+                v-model="form.NOTE"
+                type="textarea"
+                :style="areaStyle"
+                placeholder="请输入备注"
+              ></el-input>
+            </template>
+            <template v-else>
+               <span class="lookSpan">{{form.NOTE}}</span>
+            </template>
+          </el-form-item>
+          <el-form-item label="绑定用户：" prop="LOGIN">
+              <template v-if="flag!=0">
+                  <el-select
+                    size="small"
+                    v-model="form.LOGIN"
+                    placeholder="请选择用户"
+                    filterable
+                    >
+                    <el-option
+                        v-for='item in loginList'
+                        :key='item.LOGIN'
+                        :label="item.NAME"
+                        :value="item.LOGIN"
+                    ></el-option>
+                </el-select>
+              </template>
+              <template v-else>
+                 <span class="lookSpan">{{form.USERNAME}}</span>
+              </template>
+              <p style="color:#8a8a8a;">找不到用户？请联系管理员</p>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <div class='confirm' v-if="flag">
+        <span class="add" @click="submit('ruleForm')">确认</span>
+        <span class="close" @click="cancel">取消</span>
+      </div>
+    </div>
+    <detail-more
+      v-if='dsfShow'
+     :dsfPoint="dsfPoint"
+     @close="closeDsf"
+    >
+    </detail-more>
+    <detail-more2
+        v-if="showBox"
+        :detailObj='detailObj'
+        :itemid='itemid'
+        @close="closeDetail"
+        :detailTitle="detailTitle"
+    >
+    </detail-more2>
+  </div>
+
+</template>
+
+<script>
+import detailMore from '../components/detailMore.vue';
+import detailMore2 from '../components/detailMore2.vue';
+export default {
+  components: {detailMore,detailMore2},
+  name: 'detailGuanDao',
+  props: ['title','flag','formobj','loading'],
+  data() {
+    return {
+      form: {
+        "PIPENAME":"",
+        "MODIFIEDBY":"",
+        "TYPENAME":"",
+        "AREAID":"",
+        "GHG":"",
+        "PHONE":"",
+        "STATIONID":"",
+        "PERSONNAME":"",
+        "PID":"",
+        "DSFNAME":"",
+        "GFXNAME":"",
+        "SERIALID":"",
+        "TYPES":"",
+        "ROUTENAME":"",
+        "GHGNAME":"",
+        "DSF":"",
+        "NOTE":"",
+        "LASTMODIFIED":"",
+        "GFX":"",
+        "USERID":"",
+        "STATIONNAME":"",
+        "AREANAME":"",
+        "MINATYPE":"",
+        "PERSONIDS":"",
+        "LOGIN":"",
+        "ROUTEID":"",
+        "ENDSTAKE": "",
+        "STARTSTAKE": "",
+        "MILE":"",
+        "PERSONNAMES":"",
+        "MINATYPECN":"",
+      },
+      placelist:[],
+      stationlist:[],
+      routelist:[],
+      dsfList:[],
+      gfxList:[],
+      ghgList:[],
+      personlist:[],
+      personlist2:[],
+      dzTypes:[],
+      loginList:[],
+      selectloading: false,
+      selfstyle: {
+          textAlign: "right",
+          width: "100%",
+          paddingRight: "10px",
+      },
+      areaStyle:{
+        background: "#252932",
+        color:"#fff"
+      },
+      dsfCk:false,
+      gfxCk:false,
+      ghgCk:false,
+      dsfTypes:[],
+      gfxTypes:[],
+      ghgTypes:[],
+      xxyList:[],
+      rules: {
+        AREAID:[{required: true, message: '请选择输油处', trigger: 'change' }],
+        STATIONID:[{required: true, message: '请选择输油站', trigger: 'change' }],
+        PID:[{required: true, message: '请选择所属管段', trigger: 'change' }],
+        xxyList:[
+          { required: true, trigger: "change",validator:(rule, value, callback) => {
+                if (this.xxyList.length < 1) {
+                  callback(new Error("请选择巡线员"));
+                } else {
+                  callback();
+                }
+              } 
+          }
+        ],
+        USERID:[{ required: true, message: '请选择段长', trigger: 'change' }],
+        MINATYPE:[{ required: true, message: '请选择段长类型', trigger: 'change' }],
+        PHONE:[{ required: true,trigger: 'change',validator:(rule, value, callback) => {
+                  if (value === '') {
+                    callback(new Error('手机号不能为空'))
+                  } else if (!/^1\d{10}$/.test(value)) {
+                    callback(new Error('手机号格式错误'))
+                  } else {
+                    callback()
+                  }
+              } 
+          }
+        ]
+      },
+      dsfPoint:{},
+      dsfShow:false,
+      itemid: '',
+      showBox:false,
+      detailTitle:"",
+      detailObj: {
+        areainfo: {},
+        stationinfo: {},
+      },
+    };
+  },
+  async  created() {
+     if(this.title=="修改段长信息"||this.title=="查看段长信息"){
+        this.form=JSON.parse(JSON.stringify(this.formobj));
+        console.log(this.form);
+        if(this.form.DSF!=null){
+          this.dsfTypes=this.form.DSF.split(",");
+        }else{
+          this.dsfTypes=[];
+        }
+        this.getDsf(this.dsfTypes);
+        if(this.form.GFX!=null){
+          this.gfxTypes=this.form.GFX.split(",");
+        }else{
+          this.gfxList=[];
+        }
+        this.getGfx(this.gfxTypes);
+        if(this.form.GHG!=null){
+          this.ghgTypes=this.form.GHG.split(",");
+        }else{
+          this.ghgTypes=[];
+        }
+        this.getGhg(this.ghgTypes);
+        if(this.form.PERSONIDS!=null){
+          this.xxyList=this.form.PERSONIDS.split(",");
+        }else{
+          this.xxyList=[];
+        }
+        this.getXxy(this.xxyList);
+     }
+    this.getAllArea();//获取输油处
+    this.changePlace(this.form.AREAID);//根据输油处获取输油站
+    await this.changeStation(this.form.STATIONID);//根据输油站获取线路
+    await this.changeRoute(this.form.PID);//根据管道id获取routedid了之后执行接下来的接口联调
+    this.getApCodomainsByCode();//获取段长类型
+    this.getAccountList();
+  },
+  methods: {
+    //获取输油处
+   getAllArea(){
+     let url="";
+      if(this.flag==0){
+        url='gpsGroups/getAllArea?userId=' +this.$Cookie.get('userId');
+      }else{
+        url='pipe/getAreaList?userId=' + this.$Cookie.get('userId');
+      }
+      return this.$myHttp.get(url).then((res) => {
+          this.placelist = res.result;
+      });
+   },
+    //根据输油处获取输油站
+   changePlace(val){
+        let url="";
+        if(this.title=="新增段长信息"){
+          this.stationlist=[];
+          this.form.STATIONID='';
+          this.routelist=[];
+          this.form.PID="";
+          this.personlist=[];
+          this.form.USERID='';
+          this.changeRoute(this.form.PID);
+        }
+        if(this.flag==0){
+          url='gpsGroups/getStationsByArea?userId=' +this.$Cookie.get('userId') +'&groupCode=' +val;
+        }else{
+          url='pipe/getStationList?userId=' +this.$Cookie.get('userId') +'&groupCode=' +val;
+        }
+        return this.$myHttp.get(url).then((res) => {
+          this.stationlist = res.result;
+        });
+   },
+   //根据输油站获取所属管段和人员
+   async changeStation(val){
+     if(this.title=="新增段长信息"){
+      this.routelist=[];
+      this.form.PID="";
+      this.personlist=[];
+      this.form.USERID='';
+      this.changeRoute(this.form.PID);
+     }
+     
+      await this.$myHttp.get('pipeMana/getPipeList?stationId=' + val).then((res) => {
+           this.routelist=res.result;
+       });
+      this.selectloading=true;
+      //段长列表
+      await this.$myHttp.get('pipeMana/getAdminTrackerList?stationId=' + val).then((res) => {
+           this.personlist=res.result;
+           this.selectloading=false;
+      });
+      let url='contractorMan/getPersonList?stationId=' +val;
+      this.$myHttp.get(url).then((res) => {
+          this.personlist2= res.result;
+      });
+      return null
+   },
+   //根据人员赋值电话号码
+   changePerson(val){
+      this.personlist.map((item)=>{
+        if(item.PERSON_ID==val){
+          this.form.PHONE=item.TELEPHONE;
+        }
+      })
+   },
+   //通过线路id获取dsf,gfx,ghg
+   changeRoute(val){
+     let routeId="";
+     if(this.title=="新增段长信息"){
+        this.dsfTypes=[];
+        this.gfxTypes=[];
+        this.ghgTypes=[];
+     }
+     this.routelist.map((item)=>{
+         if(item.SERIALID==val){
+           routeId=item.ROUTEID;
+         }
+     })
+     //根据线路Id获取第三方施工点列表
+       this.$myHttp.get('pipeMana/getDsfList?routeId='+routeId).then((res) => {
+           this.dsfList=res.result;
+       });
+       //根据线路Id获取高风险段列表
+       this.$myHttp.get('pipeMana/getGfxList?routeId='+routeId).then((res) => {
+           this.gfxList=res.result;
+       });
+       //根据线路Id获取高后果区列表
+       this.$myHttp.get('pipeMana/getGhgList?routeId='+routeId).then((res) => {
+           this.ghgList=res.result;
+       });
+   },
+   getApCodomainsByCode(){
+        let temp="gps_pipemana_type";
+        this.$myHttp.get('gpsGroups/getApCodomainsByCode?code='+temp).then((res) => {
+           this.dzTypes=res.result;
+        });
+   },
+   getAccountList(){
+       this.$myHttp.get('pipeMana/getAccountList').then((res) => {
+           this.loginList=res.result;
+       });
+   },
+   cancel(){
+        this.$emit('close');
+   },
+    submit(formName) {
+     this.$refs[formName].validate((valid) => {
+        if (valid) {
+                if(this.title=="新增段长信息"){
+                    this.form.SERIALID=parseInt(Math.random()*100+1);
+                }
+                let obj={
+                      "gpsPipeMana": {
+                          "dsf":Array.from(this.dsfTypes).sort().toString(),
+                          "gfx":Array.from(this.gfxTypes).sort().toString(),
+                          "ghg":Array.from(this.ghgTypes).sort().toString(),
+                          "note":this.form.NOTE,
+                          "pId":this.form.PID,
+                          "phone":this.form.PHONE,
+                          "serialid":this.form.SERIALID,
+                          "userId":this.form.USERID,
+                         // "lastmodified":new Date(),
+                          "minaType":this.form.MINATYPE,
+                          "personIds":Array.from(this.xxyList).sort().toString(),
+                          "login":this.form.LOGIN
+                      },
+                      userId:this.$Cookie.get('userId'),
+                }
+                this.$emit('sub',obj);
+              
+        }
+     })
+     
+   },
+   getDsf(dsfs) {
+      //  if (dsfs.length === this.dsfList.length) {
+      //    this.dsfCk = true
+      //  } else {
+      //    this.dsfCk = false
+      //  }
+       this.dsfTypes=dsfs;
+    },
+    // selectAllDsf() {
+    //   this.dsfTypes=[];
+    //   if (this.dsfCk) {
+    //     this.dsfList.map((item) => {
+    //       this.dsfTypes.push(item.SERIALID);
+    //     })
+    //   } else {
+    //       this.dsfTypes=[];
+    //   }
+    //   console.log(this.dsfCk);
+    //   console.log(this.dsfTypes);
+    // },
+    getGfx(gfxs) {
+      //  if (gfxs.length === this.gfxList.length) {
+      //    this.gfxCk = true
+      //  } else {
+      //    this.gfxCk = false
+      //  }
+       this.gfxTypes=gfxs;
+    },
+    // selectAllGfx() {
+    //   this.gfxTypes=[];
+    //   if (this.gfxCk) {
+    //     this.gfxList.map((item) => {
+    //       this.gfxTypes.push(item.SERIALID);
+    //     })
+    //   } else {
+    //       this.gfxTypes=[];
+    //   }
+    // },
+    getGhg(ghgs) {
+      //  if (ghgs.length === this.ghgList.length) {
+      //    this.ghgCk = true
+      //  } else {
+      //    this.ghgCk = false
+      //  }
+       this.ghgTypes=ghgs;
+    },
+    getXxy(val){
+      this.xxyList=val;
+    },
+    // selectAllGhg() {
+    //   this.ghgTypes=[];
+    //   if (this.ghgCk) {
+    //     this.ghgList.map((item) => {
+    //       this.ghgTypes.push(item.SERIALID);
+    //     })
+    //   } else {
+    //       this.ghgTypes=[];
+    //   }
+    // },
+    getInfo(value) {
+      let stakeid = value.replace('+', '%252b');
+      this.$myHttp
+        .get('pointManage/getDsfInfoByStakeId?stakeId=' +stakeid)
+        .then((res) => {
+          this.dsfPoint = res.result;
+          this.dsfShow=true;
+        });
+    },
+    closeDsf(){
+      this.dsfShow=false;
+    },
+    getInfo2(name,type){
+       let temp=[];
+       if(type=="gfx"){
+           temp=this.form.GFXNAME.split(',');
+           temp.forEach((item,i,arr)=>{
+               if(name==item){
+                  this.itemid=this.form.GFX.split(',')[i];
+               }
+           })
+           this.detailTitle="高风险段";
+       }else{
+           temp=this.form.GHGNAME.split(',');
+           temp.forEach((item,i,arr)=>{
+               if(name==item){
+                 this.itemid=this.form.GHG.split(',')[i];
+               }
+           })
+           this.detailTitle="高后果区";
+       }
+        this.detailObj.stationinfo = {
+          GROUPCODE:this.form.STATIONID,
+          GROUPNAME:this.form.STATIONNAME,
+        };
+        this.detailObj.areainfo = {
+          GROUPCODE:this.form.AREAID,
+          GROUPNAME:this.form.AREANAME,
+        };
+        console.log(this.itemid);
+       this.showBox=true;
+    },
+    closeDetail(){
+      this.showBox=false;
+    }
+  },
+};
+</script>
+
+<style lang="less" scoped>
+.addList {
+  position: absolute;
+  z-index: 2;
+  left:0;top:0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  .addTable {
+    width: 1000px;
+    height: 38rem;
+    background-color: #000000;
+    position: absolute;
+    left: 50%;
+    margin-left: -500px;
+    z-index:2;
+    .title {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      border-bottom: 1px solid #ccc;
+      color: #3baaaf;font-size:16px;
+      .close {
+        position: absolute;
+        height: 30px;
+        line-height: 30px;
+        width: 30px;
+        right: 15px;
+        top: 15px;
+        font-size: 25px;
+        cursor: pointer;
+      }
+    }
+    .tr {
+      height: 45px;
+      padding: 5px;
+      .lable {
+        float: left;
+        height: 30px;
+        line-height: 30px;
+        padding: 0px 15px;
+      }
+      .el-select {
+        float: left;
+        height: 30px;
+        line-height: 30px;
+        margin-right: 30px;
+      }
+      .el-select input.el-input__inner {
+        height: 30px !important;
+        line-height: 30px !important;
+        background: #1c1e2c;
+      }
+      .el-input__inner {
+        background: #1c1e2c;
+        height: 30px;
+        line-height: 30px;
+      }
+    }
+    table {
+      display: inline-block;
+      width: 100%;
+      height: calc(~'(100% - 150px)');
+      overflow-y: auto;
+      border-collapse: collapse;
+      thead {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          th {
+            float: left;
+            padding: 0;
+            margin: 0;
+            height: 2rem;
+            line-height: 2rem;
+            border: 1px solid #1e727e;
+            font-size: 18px;
+          }
+        }
+      }
+      tbody {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          td {
+            float: left;
+            padding: 0;
+            margin: 0;
+            height: 1.6rem;
+            line-height: 1.6rem;
+            border: 1px solid #1e727e;
+            text-align: center;
+            overflow: hidden; /*超出部分隐藏*/
+            white-space: nowrap; /*不换行*/
+            text-overflow: ellipsis; /*超出部分文字以...显示*/
+          }
+        }
+      }
+    }
+    .confirm {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      color: #3baaaf;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .close {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+        margin-left: 20px;
+      }
+      .add {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+      }
+    }
+  }
+}
+.formbox {
+  overflow: hidden;
+  overflow-y:auto;
+  height:34rem;
+  padding: 20px;
+  box-sizing: border-box;
+  .el-form-item {
+    float: left;
+    width: 43%;
+    .el-select {
+      width: 100%;
+    }
+    .addBtn {
+      display: inline-block;
+      text-align: center;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      background: #777;
+      color: #fff;
+      font-size: 20px;
+      margin-left: 20px;
+      cursor: pointer;
+    }
+
+    .level1 {
+      // padding-left: 30px;
+      min-height: 30px;
+      span {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        padding: 0 15px;
+        border-radius: 15px;
+        border: 1px solid #ccc;
+        min-width: 50px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+        cursor: pointer;
+      }
+    }
+  }
+  .w100 {
+    width: 100%;
+  }
+  .lookSpan{color:#fff;}
+  .spanItem{display:inline-block;margin-right:5px;padding:0px 10px;border:1px solid #ccc;border-radius: 10px;height: 30px;line-height: 30px;cursor: pointer;}
+}
+</style>

@@ -1,0 +1,417 @@
+<template>
+  <div class="addList">
+    <div class='addTable'>
+      <div class='title'>
+        {{title}}
+        <span
+          class="close"
+          @click="cancel"
+        >{{"×"}}</span>
+      </div>
+
+      <table
+        cellpadding='0'
+        cellspacing='0'
+        v-loading='tabloading'
+      >
+        <thead>
+          <tr v-if='showtype=="1"'>
+            <th :style="{width:'7%'}">序号</th>
+            <th :style="{width:'12.4%'}">必经点名称\日期</th>
+            <th
+              :style="{width:'2.6%'}"
+              v-for="(item,index) in date"
+              :key='index'
+            >{{item.key}}</th>
+          </tr>
+
+          <tr v-if='showtype=="2"'>
+            <th :style="{width:'3.6%'}">序号</th>
+            <th :style="{width:'12%'}">区名/段名</th>
+            <th
+              :style="{width:'10%'}"
+              title="必经点名称\日期"
+            >必经点名称\日期</th>
+            <th
+              :style="{width:'2.4%'}"
+              v-for="(item,index) in date"
+              :key='index'
+            >{{item.key}}</th>
+          </tr>
+
+        </thead>
+        <tbody>
+          <tr
+            v-for="(value,key) in list"
+            :key="key"
+            v-if='showtype=="1"'
+          >
+            <td :style="{width:'7%'}">{{key+1}}</td>
+            <td :style="{width:'12.4%'}">{{value.pointname}}</td>
+            <td
+              :style="{width:'2.6%'}"
+              v-for="(item,index) in date"
+              :key='index'
+            >{{value[item.chart]}}</td>
+          </tr>
+          <tr
+            v-for="(value,key) in list"
+            :key="key"
+            v-if='showtype=="2"'
+          >
+            <td :style="{width:'3.6%'}">{{key+1}}</td>
+
+            <td
+              :style="{width:'12%'}"
+              :title="value.name"
+              :rowspan="value.cols?value.cols:0"
+            >
+              <div
+                class="tdbox"
+                v-if='value.cols'
+                :style="{height:(1.56*value.cols)+'rem',lineHeight:(1.6*value.cols)+'rem'}"
+              >
+                {{value.name}}
+              </div>
+
+            </td>
+            <td
+              :style="{width:'10%'}"
+              class="namep"
+              :title="value.pointname"
+            >{{value.pointname}}</td>
+            <td
+              :style="{width:'2.4%'}"
+              v-for="(item,index) in date"
+              :key='index'
+            >{{value[item.chart]}}</td>
+
+          </tr>
+          <tr v-if='list.length==0&&!tabloading'>
+            <td
+              colspan="32"
+              :style="{width:'100%'}"
+            >暂无数据</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- <div class='confirm'>
+        <span
+          class="add"
+          @click="submit"
+        >确认</span>
+        <span
+          class="close"
+          @click="cancel"
+        >取消</span>
+      </div> -->
+    </div>
+
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'tablepointlist',
+
+  props: {
+    // takeList: {
+    //   type: Array,
+    //   default() {
+    //     return [];
+    //   },
+    // },
+    title: {
+      type: String,
+      default() {
+        return '';
+      },
+    },
+    pointTime: {
+      type: String,
+      default() {
+        return '';
+      },
+    },
+    pointItem: {
+      type: Object,
+      default() {
+        return {};
+      },
+    },
+    // showtype: {
+    //   type: String,
+    //   default() {
+    //     return '1';
+    //   },
+    // },
+    // stakes: {
+    //   type: Array,
+    //   default() {
+    //     return [];
+    //   },
+    // },
+  },
+  data() {
+    return {
+      showtype: '1',
+      list: [],
+      date: [
+        { key: '1', chart: 'one' },
+        { key: '2', chart: 'two' },
+        { key: '3', chart: 'three' },
+        { key: '4', chart: 'four' },
+        { key: '5', chart: 'five' },
+        { key: '6', chart: 'six' },
+        { key: '7', chart: 'seven' },
+        { key: '8', chart: 'eight' },
+        { key: '9', chart: 'nine' },
+        { key: '10', chart: 'ten' },
+        { key: '11', chart: 'eleven' },
+        { key: '12', chart: 'twelve' },
+        { key: '13', chart: 'thirteen' },
+        { key: '14', chart: 'fourteen' },
+        { key: '15', chart: 'fifteen' },
+        { key: '16', chart: 'sixteen' },
+        { key: '17', chart: 'seventeen' },
+        { key: '18', chart: 'eighteen' },
+        { key: '19', chart: 'nineteen' },
+        { key: '20', chart: 'twenty' },
+        { key: '21', chart: 'twenty_one' },
+        { key: '22', chart: 'twenty_two' },
+        { key: '23', chart: 'twenty_three' },
+        { key: '24', chart: 'twenty_four' },
+        { key: '25', chart: 'twenty_five' },
+        { key: '26', chart: 'twenty_six' },
+        { key: '27', chart: 'twenty_seven' },
+        { key: '28', chart: 'twenty_eight' },
+        { key: '29', chart: 'twenty_nine' },
+        { key: '30', chart: 'thirty' },
+        { key: '31', chart: 'thirty_one' },
+      ],
+
+      tabloading: false,
+    };
+  },
+  mounted() {
+    let namepoint = {
+      第三方施工: '5',
+      易打孔盗油段: '6',
+      重点穿跨越部位: '7',
+      阀室: '8',
+      汛期防汛重点部位: '9',
+      高后果区: '10',
+      高风险段: '11',
+    };
+    if (
+      this.title == '易打孔盗油段' ||
+      this.title == '高后果区' ||
+      this.title == '高风险段'
+    ) {
+      this.getPassPointeList2(namepoint[this.title]);
+    } else {
+      this.getPassPointeList(namepoint[this.title]);
+    }
+  },
+  methods: {
+    getPassPointeList2(point) {
+      //特殊类型必经点详情
+      console.log(2233, point, this.pointTime, this.pointItem);
+      this.tabloading = true;
+      this.$myHttp
+        .post('groupTaskComp/getPassPointList2', {
+          stationId: this.pointItem.groupCode,
+          pointType: point,
+          queryDate: this.pointTime,
+          userId: sessionStorage.getItem('userId'),
+        })
+        .then((res) => {
+          console.log(44455454, res);
+          this.showtype = '2';
+          let arr = [];
+          if (res.result.length > 0) {
+            res.result.map((val, key) => {
+              if (val.pointList.length > 0) {
+                let bol = true;
+                val.pointList.map((valC, keyC) => {
+                  let objj = { ...valC };
+                  objj.name = val.name;
+                  if (bol) {
+                    objj.cols = val.pointList.length;
+                    bol = false;
+                  }
+                  arr.push(objj);
+                });
+              }
+            });
+          }
+          console.log(888888, arr);
+          this.list = arr;
+          this;
+          this.tabloading = false;
+        });
+    },
+    getPassPointeList(point) {
+      //普通类型必经点详情
+      console.log(2244, point, this.pointTime, this.pointItem);
+      this.tabloading = true;
+      this.$myHttp
+        .post('groupTaskComp/getPassPointList', {
+          stationId: this.pointItem.groupCode,
+          pointType: point,
+          queryDate: this.pointTime,
+          userId: sessionStorage.getItem('userId'),
+        })
+        .then((res) => {
+          console.log(44455454, res);
+          this.showtype = '1';
+          this.list = res.result;
+          this.tabloading = false;
+        });
+    },
+    cancel() {
+      this.$parent.showcom = false;
+    },
+  },
+};
+</script>
+
+<style lang="less" scoped>
+.addList {
+  position: fixed;
+  height: 100%;
+  top: 100px;
+  width: 100%;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.8);
+  .addTable {
+    width: 80%;
+    margin-left: 5%;
+    max-height: 38rem;
+    background: #000000;
+    overflow: auto;
+    border: 1px solid #6d6d6d;
+    .title {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      border-bottom: 1px solid #ccc;
+      color: #3baaaf;
+      .close {
+        position: absolute;
+        height: 30px;
+        line-height: 30px;
+        width: 30px;
+        right: 15px;
+        top: 15px;
+        font-size: 25px;
+        cursor: pointer;
+      }
+    }
+
+    table {
+      display: inline-block;
+      width: 100%;
+      height: 600px;
+      overflow-y: auto;
+      border-collapse: collapse;
+      thead {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          th {
+            float: left;
+            padding: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            margin: 0;
+            height: 2rem;
+            line-height: 2rem;
+            border: 1px solid #1e727e;
+            font-size: 18px;
+          }
+        }
+      }
+      tbody {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          td {
+            float: left;
+            position: relative;
+            padding: 0;
+            margin: 0;
+            height: 1.6rem;
+            line-height: 1.6rem;
+            border: 1px solid #1e727e;
+            text-align: center;
+
+            .tdbox {
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              color: #fff;
+              background: #000;
+              z-index: 5;
+              overflow: hidden; /*超出部分隐藏*/
+              white-space: nowrap; /*不换行*/
+              text-overflow: ellipsis; /*超出部分文字以...显示*/
+            }
+          }
+          .namep {
+            overflow: hidden; /*超出部分隐藏*/
+            white-space: nowrap; /*不换行*/
+            text-overflow: ellipsis; /*超出部分文字以...显示*/
+          }
+        }
+      }
+    }
+
+    .confirm {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      color: #3baaaf;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .close {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+        margin-left: 20px;
+      }
+      .add {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+      }
+    }
+  }
+}
+</style>

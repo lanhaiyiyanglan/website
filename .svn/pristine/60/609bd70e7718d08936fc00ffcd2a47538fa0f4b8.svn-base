@@ -1,0 +1,1323 @@
+<style lang="less">
+@import 'station.less';
+</style>
+<template>
+  <div
+    class="station"
+    v-loading="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)"
+  >
+    <div class="leftTree">
+      <div class="title">管理处信息列表</div>
+      <el-tree
+        :data="data"
+        :props="defaultProps"
+        @node-click="handleNodeClick"
+      ></el-tree>
+    </div>
+    <div class="rightBox">
+      <h4>{{stationName}} 人员及必经点分配情况</h4>
+      <div class='member'>
+        <div class='title'>管理人员</div>
+        <h6>站长、副站长：（每人>=20）</h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in person1"
+            :key='key'
+          >{{value.PERSON_NAME}}</span>
+        </div>
+        <h6>外线管理员：（每人>=30,总里程>=50*人数）</h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in person2"
+            :key='key'
+          >{{value.PERSON_NAME}}</span>
+        </div>
+        <h6>安全员：（暂不考核里程）</h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in person3"
+            :key='key'
+          >{{value.PERSON_NAME}}</span>
+        </div>
+        <h6>管道科：（每人=20）</h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in person4"
+            :key='key'
+          >{{value.PERSON_NAME}}</span>
+        </div>
+
+        <div class='title'>
+          巡护路线
+          <span
+            class='addBtn'
+            @click="addRoute"
+            v-if='permessinfo.add'
+          >{{"+"}}</span>
+          <span
+            class='addBtn'
+            @click="deleteRoute"
+            v-if='permessinfo.delete'
+          >{{"×"}}</span>
+        </div>
+        <h6>线路名称</h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in routes"
+            :key='key'
+          >{{value.ROUTENAME}}</span>
+        </div>
+
+        <div class='title'>必经点列表</div>
+        <h6>
+          第三方施工
+          <!--<span class='addBtn' @click="addRoute3(5)">{{"+"}}</span>
+                    <span class='addBtn' @click="deletePointFun('5')">{{"×"}}</span>-->
+        </h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in points1"
+            @click="goInfo(value)"
+            :key='key'
+          >{{value.POINTNAME}}</span>
+        </div>
+        <h6>
+          易打孔盗油段
+          <span
+            class='addBtn'
+            @click="addParagraph('易打孔盗油点')"
+            v-if='permessinfo.add'
+          >{{"+"}}</span>
+          <span
+            class='addBtn'
+            @click="deleteParagraphFun('易打孔盗油点')"
+            v-if='permessinfo.delete'
+          >{{"×"}}</span>
+        </h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in points2"
+            :key='key'
+            @click="getiteminfo(value,'易打孔盗油点')"
+          >{{value.POINTNAME}}</span>
+        </div>
+        <h6>
+          重点穿跨越部位
+          <span
+            class='addBtn'
+            @click="addRoute3('7')"
+            v-if='permessinfo.add'
+          >{{"+"}}</span>
+          <span
+            class='addBtn'
+            @click="deletePointFun('7')"
+            v-if='permessinfo.delete'
+          >{{"×"}}</span>
+        </h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in points3"
+            :key='key'
+            @click="goInfo1(value,'重点穿跨越部位')"
+          >{{value.POINTNAME}}</span>
+        </div>
+        <h6>
+          阀室
+          <span
+            class='addBtn'
+            @click="addRoute3('8')"
+            v-if='permessinfo.add'
+          >{{"+"}}</span>
+          <span
+            class='addBtn'
+            @click="deletePointFun('8')"
+            v-if='permessinfo.delete'
+          >{{"×"}}</span>
+        </h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in points4"
+            :key='key'
+            @click="goInfo1(value,'阀室')"
+          >{{value.POINTNAME}}</span>
+        </div>
+        <h6>
+          汛期防汛重点部位
+          <span
+            class='addBtn'
+            @click="addRoute3('9')"
+            v-if='permessinfo.add'
+          >{{"+"}}</span>
+          <span
+            class='addBtn'
+            @click="deletePointFun('9')"
+            v-if='permessinfo.delete'
+          >{{"×"}}</span>
+        </h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in points5"
+            :key='key'
+            @click="goInfo1(value,'汛期防汛重点部位')"
+          >{{value.POINTNAME}}</span>
+        </div>
+
+        <!-- 高后果区 -->
+
+        <h6>
+          高后果区
+          <span
+            class='addBtn'
+            @click="addParagraph('高后果区')"
+            v-if='permessinfo.add'
+          >{{"+"}}</span>
+          <span
+            class='addBtn'
+            @click="deleteParagraphFun('高后果区')"
+            v-if='permessinfo.delete'
+          >{{"×"}}</span>
+        </h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in points6"
+            :key='key'
+            @click="getiteminfo(value,'高后果区')"
+          >{{value.POINTNAME}}</span>
+        </div>
+
+        <!-- 高风险段 -->
+
+        <h6>
+          高风险段
+          <span
+            class='addBtn'
+            @click="addParagraph('高风险段')"
+            v-if='permessinfo.add'
+          >{{"+"}}</span>
+          <span
+            class='addBtn'
+            @click="deleteParagraphFun('高风险段')"
+            v-if='permessinfo.delete'
+          >{{"×"}}</span>
+        </h6>
+        <div class='level1'>
+          <span
+            v-for="(value,key) in points7"
+            :key='key'
+            @click="getiteminfo(value,'高风险段')"
+          >{{value.POINTNAME}}</span>
+        </div>
+
+      </div>
+    </div>
+    <div
+      class='addList'
+      v-if="routesAll"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+      <div class='addTable'>
+        <div class='title'>
+          新增路线
+          <span
+            class="close"
+            @click="cancel"
+          >{{"×"}}</span>
+        </div>
+        <table
+          cellpadding='0'
+          cellspacing='0'
+        >
+          <thead>
+            <tr>
+              <th :style="{width:'20%'}">选择</th>
+              <th :style="{width:'20%'}">路线名称</th>
+              <th :style="{width:'20%'}">开始站点</th>
+              <th :style="{width:'20%'}">结束站点</th>
+              <th :style="{width:'20%'}">路线ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in routesAll"
+              :key="key"
+            >
+              <td :style="{width:'20%'}">
+                <el-checkbox
+                  v-model="value.check"
+                  @change="change(value)"
+                  label=""
+                ></el-checkbox>
+              </td>
+              <td :style="{width:'20%'}">{{value.ROUTENAME}}</td>
+              <td :style="{width:'20%'}">{{value.STARTAREA}}</td>
+              <td :style="{width:'20%'}">{{value.ENDAREA}}</td>
+              <td :style="{width:'20%'}">{{value.ROUTEID}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class='confirm'>
+          <span
+            class="add"
+            @click="addCon"
+          >确认</span>
+          <span
+            class="close"
+            @click="cancel"
+          >取消</span>
+        </div>
+      </div>
+    </div>
+    <div
+      class='addList'
+      v-if="deleteBool"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+      <div class='addTable'>
+        <div class='title'>
+          删除路线
+          <span
+            class="close"
+            @click="cancelDelete"
+          >{{"×"}}</span>
+        </div>
+        <table
+          cellpadding='0'
+          cellspacing='0'
+        >
+          <thead>
+            <tr>
+              <th :style="{width:'20%'}">选择</th>
+              <th :style="{width:'40%'}">路线名称</th>
+              <th :style="{width:'40%'}">路线ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in routes"
+              :key="key"
+            >
+              <td :style="{width:'20%'}">
+                <el-checkbox
+                  v-model="value.deleteBool"
+                  @change="change(value)"
+                  label=""
+                ></el-checkbox>
+              </td>
+              <td :style="{width:'40%'}">{{value.ROUTENAME}}</td>
+              <td :style="{width:'40%'}">{{value.ROUTEID}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class='confirm'>
+          <span
+            class="add"
+            @click="deleteCon"
+          >确认</span>
+          <span
+            class="close"
+            @click="cancelDelete"
+          >取消</span>
+        </div>
+      </div>
+    </div>
+    <div
+      class='addList'
+      v-if="addPointBool"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+      <div class='addTable'>
+        <div class='title'>
+          新增{{elseTitle}}
+          <span
+            class="close"
+            @click="cancel"
+          >{{"×"}}</span>
+        </div>
+        <div class="tr">
+          <span class='lable'>路线：</span>
+          <el-select
+            v-model="valueRoute"
+            placeholder="请选择"
+            @change="changeRoute"
+          >
+            <el-option
+              v-for="item in routes"
+              :key="item.ROUTEID"
+              :label="item.ROUTENAME"
+              :value="item.ROUTEID"
+            >
+            </el-option>
+          </el-select>
+        </div>
+        <table
+          cellpadding='0'
+          cellspacing='0'
+        >
+          <thead>
+            <tr>
+              <th :style="{width:'20%'}">选择</th>
+              <th :style="{width:'20%'}">桩号</th>
+              <th :style="{width:'20%'}">区域</th>
+              <th :style="{width:'20%'}">类型</th>
+              <th :style="{width:'20%'}">路线ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in selectStake"
+              :key="key"
+            >
+              <td :style="{width:'20%'}">
+                <el-checkbox
+                  v-model="value.check"
+                  @change="change(value)"
+                  label=""
+                ></el-checkbox>
+              </td>
+              <td :style="{width:'20%'}">{{value.STAKEID}}</td>
+              <td :style="{width:'20%'}">{{value.AREA}}</td>
+              <td :style="{width:'20%'}">{{value.STAKETYPE}}</td>
+              <td :style="{width:'20%'}">{{value.ROUTEID}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class='confirm'>
+          <span
+            class="add"
+            @click="addCon3"
+          >确认</span>
+          <span
+            class="close"
+            @click="cancel"
+          >取消</span>
+        </div>
+      </div>
+    </div>
+    <div
+      class='addList'
+      v-if="deletePointBool"
+      v-loading="loading"
+      element-loading-text="拼命加载中"
+      element-loading-spinner="el-icon-loading"
+      element-loading-background="rgba(0, 0, 0, 0.8)"
+    >
+      <div class='addTable'>
+        <div class='title'>
+          删除{{elseTitle}}
+          <span
+            class="close"
+            @click="cancelDelete"
+          >{{"×"}}</span>
+        </div>
+        <table
+          cellpadding='0'
+          cellspacing='0'
+        >
+          <thead>
+            <tr>
+              <th :style="{width:'20%'}">选择</th>
+              <th :style="{width:'40%'}">桩号</th>
+              <th :style="{width:'40%'}">桩名称</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in delPoint"
+              :key="key"
+            >
+              <td :style="{width:'20%'}">
+                <el-checkbox
+                  v-model="value.deleteBool"
+                  label=""
+                ></el-checkbox>
+
+              </td>
+              <td :style="{width:'40%'}">{{value.STAKEID}}</td>
+              <td :style="{width:'40%'}">{{value.POINTNAME}}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class='confirm'>
+          <span
+            class="add"
+            @click="deleteCon2"
+          >确认</span>
+          <span
+            class="close"
+            @click="cancelDelete"
+          >取消</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 砖详情 -->
+    <div
+      class='infoBox'
+      v-if="zhuangPoint.type"
+    >
+      <div class='box box1 '>
+        <div class='title '>
+          {{zhuangPoint.type}}详情
+          <span
+            class="close"
+            @click="closeInfo"
+          >{{"×"}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">所属线路</span>
+          <span class="value">{{zhuangPoint.ROUTENAME}}</span>
+        </div>
+        <!-- <div class='tr2'>
+          <span class="lable">必经点类型</span>
+          <span class="value">{{zhuangPoint.type}}</span>
+      </div> -->
+        <div class='tr2'>
+          <span class="lable">桩号</span>
+          <span class="value">{{zhuangPoint.STAKEID}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">经度</span>
+          <span class="value">{{zhuangPoint.LONGITUDE}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">纬度</span>
+          <span class="value">{{zhuangPoint.LATITUDE}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">范围</span>
+          <span class="value">{{zhuangPoint.ALLOWRANGE}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">备注</span>
+          <span class="value">{{zhuangPoint.REMARK}}</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 第三方施工详情 -->
+    <div
+      class='infoBox'
+      v-if="dsfPoint"
+    >
+      <div class='title fixtit'>
+        第三方施工详情
+        <span
+          class="close"
+          @click="closeInfo"
+        >{{"×"}}</span>
+      </div>
+      <div class='box mt4'>
+
+        <div class='tr'>
+          <span class="lable">区域段</span>
+          <span class="value">{{dsfPoint.GROUPNAMES}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">发生时间</span>
+          <span class="value">{{dsfPoint.LASTTIME?dsfPoint.LASTTIME.split('T')[0]:''}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">事件类型</span>
+          <span class="value">{{'第三方施工'}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">发现人</span>
+          <span class="value">{{dsfPoint.REPORTUSER}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">状态</span>
+          <span class="value">{{dsfPoint.SITUATIONNAME}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">所属路线</span>
+          <span class="value">{{dsfPoint.ROUTENAME}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">输油站</span>
+          <span class="value">{{dsfPoint.GROUPNAME}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">里程桩号</span>
+          <span class="value">{{dsfPoint.MILEAGEID}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">责任人</span>
+          <span class="value">{{dsfPoint.PERSONNAME}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">等级</span>
+          <span class="value">{{dsfPoint.GRADE}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">是否签订安全协议</span>
+          <span class="value">{{dsfPoint.SECUREPROTOCOLZH}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">填报人</span>
+          <span class="value">{{dsfPoint.REPORTUSER}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">具体位置</span>
+          <span class="value">{{dsfPoint.DESCRIPTION}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">具体描述</span>
+          <span class="value">{{dsfPoint.DESCRIPTION}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">采取措施</span>
+          <span class="value">{{dsfPoint.ACTION}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">经度</span>
+          <span class="value">{{dsfPoint.LONGITUDE}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">纬度</span>
+          <span class="value">{{dsfPoint.LATITUDE}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">施工进度</span>
+          <span class="value">{{dsfPoint.REMARK}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">事件状态</span>
+          <span class="value">{{dsfPoint.INCIDENTSTATUSZH}}</span>
+        </div>
+        <div class='tr'>
+          <span class="lable">关闭人</span>
+          <span class="value">{{dsfPoint.CLOSER}}</span>
+        </div>
+        <div class='tr2'>
+          <span class="lable">关闭描述</span>
+          <span class="value">{{dsfPoint.CLOSEREASON}}</span>
+        </div>
+        <table
+          v-if='dsfPoint.fileList&&dsfPoint.fileList.length>0'
+          class="tablist"
+          cellspacing='0'
+        >
+          <thead>
+            <tr>
+              <th style="width:10%">序号</th>
+              <th style="width:50%">文件名称</th>
+              <th>说明</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for='(item,index) in dsfPoint.fileList'
+              :key='index'
+            >
+              <td>{{index+1}}</td>
+              <td><a
+                  :href="item.fileContent"
+                  target="_blank"
+                >{{item.fileName}}</a></td>
+              <td>{{item.fileType}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 新增编辑弹框 -->
+    <DetailBox
+      v-if='comtitle'
+      :title='comtitle'
+      @close='closeDetailBox'
+      :formobj='formobj'
+      @sub='addbackcom'
+      :comtype='comtype'
+      :itemid='itemid'
+    />
+
+    <DetailCom3
+      v-if='detailcombool'
+      :delPoint='comPoint'
+      :elseTitle='comd3tit'
+      :stationId='stationId'
+      @sub='backghgq'
+    />
+
+  </div>
+</template>
+<script>
+import { tableToExcel } from '../../libs/xml';
+import DetailBox from '../../components/detailCom';
+import DetailCom3 from '../../components/detailCom3';
+export default {
+  components: {
+    DetailBox,
+    DetailCom3,
+  },
+  data() {
+    return {
+      data: [],
+      loading: false,
+      stationName: '',
+      stationId: '',
+      defaultProps: {
+        children: 'CHILDREN',
+        label: 'GROUPNAME',
+        value: 'GROUPCODE',
+      },
+      detailcombool: false,
+      comtype: '',
+      itemid: '',
+      comd3tit: '',
+      permessinfo: {},
+      comPoint: [],
+      routes: [],
+      person1: [],
+      person2: [],
+      person3: [],
+      person4: [],
+      points1: [],
+      points2: [],
+      points3: [],
+      points4: [],
+      points5: [],
+      points6: [],
+      points7: [],
+      routesAll: null, //选择新增路线
+      selectRoute: null, //路线下拉框
+      valueRoute: '', //选中路线
+      selectStake: null, //桩下拉框
+      valueStake: '', //选中桩
+      addPointBool: false, //新增点弹框
+      elseTitle: null, //新增框title
+      pointType: null, //点类型
+      dsfPoint: null, //第三方详情
+      zhuangPoint: {}, //桩详情
+      deleteBool: null, //删除路线弹框
+      delPoint: null, //删除点集合
+      deletePointBool: false, //删除点弹框
+      comtitle: '',
+      formobj: {
+        areainfo: {},
+        stationinfo: {},
+      },
+    };
+  },
+  computed: {},
+  methods: {
+    //关闭弹框组件
+    closeDetailBox() {
+      this.comtitle = '';
+    },
+    handleNodeClick(data, area) {
+       console.log(1124, data, area);
+       if(area.level==2){//第二级
+         this.formobj.stationinfo = {
+            GROUPCODE: area.data.GROUPCODE,
+            GROUPNAME: area.data.GROUPNAME,
+          };
+         this.formobj.areainfo = {
+            GROUPCODE: area.parent.data.GROUPCODE,
+            GROUPNAME: area.parent.data.GROUPNAME,
+          };
+       }
+      // if (area.childNodes.length > 0) {
+      //   //一级
+      //   this.formobj.areainfo = {
+      //     GROUPCODE: area.data.GROUPCODE,
+      //     GROUPNAME: area.data.GROUPNAME,
+      //   };
+      // } else {
+      //   //二级
+      //   this.formobj.stationinfo = {
+      //     GROUPCODE: area.data.GROUPCODE,
+      //     GROUPNAME: area.data.GROUPNAME,
+      //   };
+      // }
+      this.stationName = data.GROUPNAME;
+      this.stationId = data.GROUPCODE;
+      this.getRoutes(data.GROUPCODE);
+      this.getPerson(data.GROUPCODE);
+      this.getPoint(data.GROUPCODE);
+    },
+    deleteRoute() {
+      //删除路线
+      this.deleteBool = true;
+    },
+    cancelDelete() {
+      //取消删除
+      this.deleteBool = false;
+      this.deletePointBool = false;
+    },
+    deleteCon() {
+      //确认删除路线
+      let that = this;
+      let routes = that.routes;
+      let stationId = that.stationId;
+      let delArr = [];
+      for (let i = 0; i < routes.length; i++) {
+        if (routes[i].deleteBool) {
+          delArr.push(routes[i].ROUTEID);
+        }
+      }
+      if (delArr.length == 0) {
+        window.vm.$message({
+          type: 'error',
+          message: '请选择点',
+          showClose: true,
+          duration: 5000,
+        });
+        return false;
+      }
+      this.loading = true;
+      let json = {
+        routeIdList: delArr,
+        stationId: stationId,
+        userId: this.$Cookie.get('userId'),
+      };
+      that.$myHttp.post('pointManage/deleteRoute', json).then((res) => {
+        this.loading = false;
+        if (res.success) {
+          window.vm.$message({
+            type: 'success',
+            message: '删除成功',
+            showClose: true,
+            duration: 5000,
+          });
+          this.deleteBool = false;
+          this.routes = null;
+          this.getRoutes(this.stationId);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: res.msg || '删除失败',
+            showClose: true,
+            duration: 5000,
+          });
+        }
+      });
+    },
+    change(value) {
+      console.log(value);
+    },
+    change2(value) {
+      //选择删除点
+      // console.log(value, '2345');
+      // // let delPoint = this.delPoint;
+      // for (var i = this.delPoint.length - 1; i >= 0; i--) {
+      //   // this.delPoint[i].deleteBool = false;
+      //   if (value.STAKEID == this.delPoint[i].STAKEID) {
+      //     var obj = { ...this.delPoint[i] };
+      //     obj.deleteBool = !obj.deleteBool;
+      //     this.$set(this.delPoint, i, obj);
+      //     //this.delPoint[i].deleteBool = !this.delPoint[i].deleteBool;
+      //   }
+      // }
+    },
+    getTree() {
+      //树节点
+      let that = this;
+      that.$myHttp
+        .get(
+          'pointManage/getTreeList?userId=' + this.$Cookie.get('userId')
+        )
+        .then((res) => {
+          that.data = res.result;
+        });
+    },
+    changeRoute(value) {
+      //选择路线
+      this.loading = true;
+      this.selectStake = null;
+      this.valueStake = '';
+      this.$myHttp
+        .get('pointManage/getStakesByRouteId?routeId=' + value)
+        .then((res) => {
+          this.selectStake = res.result;
+          this.loading = false;
+        });
+    },
+    goInfo(value) {
+      //选择桩查看详细信息
+      this.loading = true;
+      let stakeid = value.STAKEID;
+      stakeid = stakeid.replace('+', '%252b');
+      this.$myHttp
+        .get('pointManage/getDsfInfoByStakeId?stakeId=' + stakeid)
+        .then((res) => {
+          this.dsfPoint = res.result;
+          this.loading = false;
+        });
+    },
+    goInfo1(value, type) {
+      //选择桩查看详细信息
+      this.loading = true;
+      let stakeid = value.STAKEID;
+      stakeid = stakeid.replace('+', '%252b');
+      this.$myHttp
+        .get('pointManage/getStakeInfo?stakeId=' + stakeid)
+        .then((res) => {
+          console.log(454545, res.result);
+          this.zhuangPoint = res.result;
+          this.zhuangPoint.type = type;
+          this.loading = false;
+        });
+    },
+    closeInfo() {
+      this.dsfPoint = null;
+      this.zhuangPoint = {};
+    },
+    addRoute3(type) {
+      //新增点弹框
+      let that = this;
+      this.addPointBool = true;
+      this.pointType = type;
+      if (type == '5') {
+        this.elseTitle = '第三方施工';
+      } else if (type == '6') {
+        this.elseTitle = '易打孔盗油点';
+      } else if (type == '7') {
+        this.elseTitle = '重点穿跨越部位';
+      } else if (type == '8') {
+        this.elseTitle = '阀室';
+      } else if (type == '9') {
+        this.elseTitle = '汛期防汛重点部位';
+      }
+    },
+    addRoute() {
+      //新增路线弹框
+      let that = this;
+      this.loading = true;
+      that.$myHttp
+        .get(
+          'pointManage/getAllRoutes?userId=' + this.$Cookie.get('userId')
+        )
+        .then((res) => {
+          that.routesAll = res.result;
+          this.loading = false;
+        });
+    },
+    cancel() {
+      //取消新增
+      this.routesAll = null;
+      this.addPointBool = null;
+
+      this.selectStake = null;
+      this.valueStake = '';
+      this.selectRoute = null;
+      this.valueRoute = '';
+    },
+    addCon() {
+      //确认增加路线
+      let that = this;
+      this.loading = true;
+      let routes = that.routes;
+      let routesAll = that.routesAll;
+      let stationId = that.stationId;
+      let addRoute = [];
+      for (let i = 0; i < routesAll.length; i++) {
+        if (routesAll[i].check) {
+          addRoute.push(routesAll[i].ROUTEID);
+        }
+      }
+      let json = {
+        routeIdList: addRoute,
+        stationId: stationId,
+        userId:this.$Cookie.get('userId'),
+      };
+      that.$myHttp.post('pointManage/saveRoute', json).then((res) => {
+        this.loading = false;
+        if (res.success) {
+          window.vm.$message({
+            type: 'success',
+            message: '新增成功',
+            showClose: true,
+            duration: 5000,
+          });
+          this.routesAll = null;
+          this.getRoutes(this.stationId);
+          this.getPerson(this.stationId);
+          this.getPoint(this.stationId);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: res.msg || '新增失败',
+            showClose: true,
+            duration: 5000,
+          });
+        }
+      });
+    },
+    //获取高后果区接口
+    addParagraph(type) {
+      console.log(121212, type);
+      this.comtitle = type;
+      this.comtype = 'add';
+    },
+    addCon3() {
+      //确认增加点
+      let that = this;
+      this.loading = true;
+      let selectStake = that.selectStake;
+      let stationId = that.stationId;
+      let addArr = [];
+      for (let i = 0; i < selectStake.length; i++) {
+        if (selectStake[i].check) {
+          addArr.push(selectStake[i].STAKEID);
+        }
+      }
+
+      let json = {
+        pointType: that.pointType,
+        stakeIdList: addArr,
+        routeId: that.valueRoute,
+        stationId: stationId,
+        userId:this.$Cookie.get('userId'),
+      };
+      that.$myHttp.post('pointManage/savePoint', json).then((res) => {
+        this.loading = false;
+        if (res.success) {
+          window.vm.$message({
+            type: 'success',
+            message: '新增成功',
+            showClose: true,
+            duration: 5000,
+          });
+          this.selectRoute = null;
+          this.valueRoute = '';
+          this.getPoint(this.stationId);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: res.msg || '新增失败',
+            showClose: true,
+            duration: 5000,
+          });
+        }
+        this.selectStake = null;
+        this.addPointBool = null;
+      });
+    },
+    //删除段
+    deleteParagraphFun(type) {
+      // console.log(1477, type);
+      if (type == '高后果区') {
+        this.comPoint = this.points6;
+      } else if (type == '高风险段') {
+        this.comPoint = this.points7;
+      } else if (type == '易打孔盗油点') {
+        this.comPoint = this.points2;
+      }
+      this.comd3tit = type;
+      this.detailcombool = true;
+    },
+    backghgq(e) {
+      console.log(3666, e);
+      this.routesAll = null;
+      this.detailcombool = false;
+      this.getRoutes(this.stationId);
+      this.getPerson(this.stationId);
+      this.getPoint(this.stationId);
+    },
+    deletePointFun(type) {
+      //删除点
+      this.deletePointBool = true;
+      this.pointType = type;
+      if (type == 5) {
+        this.delPoint = this.points1;
+        this.elseTitle = '第三方施工';
+      } else if (type == 6) {
+        this.delPoint = this.points2;
+
+        this.elseTitle = '易打孔盗油点';
+      } else if (type == 7) {
+        this.delPoint = this.points3;
+        this.elseTitle = '重点穿跨越部位';
+      } else if (type == 8) {
+        this.delPoint = this.points4;
+        this.elseTitle = '阀室';
+      } else if (type == 9) {
+        this.delPoint = this.points5;
+        this.elseTitle = '汛期防汛重点部位';
+      }
+      console.log(454554, this);
+    },
+
+    deleteCon2() {
+      //确认删除点
+      let that = this;
+      let delPoint = that.delPoint;
+      let stationId = that.stationId;
+      let delArr = [];
+
+      for (let i = 0; i < delPoint.length; i++) {
+        if (delPoint[i].deleteBool) {
+          delArr.push(delPoint[i]);
+        }
+      }
+      if (delArr.length == 0) {
+        window.vm.$message({
+          type: 'error',
+          message: '请选择点',
+          showClose: true,
+          duration: 5000,
+        });
+        return false;
+      }
+      console.log(4545, delArr);
+      let STAKEIDLIST = [];
+      if (delArr.length > 0) {
+        delArr.map((val, key) => {
+          STAKEIDLIST.push(val.STAKEID);
+        });
+      }
+      this.loading = true;
+      let json = {
+        pointType: that.pointType,
+        stakeIdList: STAKEIDLIST,
+        routeId: delArr[0].ROUTEID,
+        stationId: stationId,
+        userId: this.$Cookie.get('userId'),
+      };
+      that.$myHttp.post('pointManage/deletePoint', json).then((res) => {
+        this.loading = false;
+        if (res.success) {
+          window.vm.$message({
+            type: 'success',
+            message: '删除成功',
+            showClose: true,
+            duration: 5000,
+          });
+          this.deletePointBool = false;
+          this.delArr = null;
+          this.getPoint(this.stationId);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: res.msg || '删除失败',
+            showClose: true,
+            duration: 5000,
+          });
+        }
+      });
+    },
+    getRoutes(stationId) {
+      //初始化路线
+      let that = this;
+      this.loading = true;
+      that.$myHttp
+        .get('pointManage/getRoutesByStationId?stationId=' + stationId)
+        .then((res) => {
+          that.routes = res.result;
+          this.loading = false;
+        });
+    },
+    getPerson(stationId) {
+      //初始化人员
+      let that = this;
+      that.person1 = [];
+      that.person2 = [];
+      that.person3 = [];
+      that.person4 = [];
+      this.loading = true;
+      that.$myHttp
+        .get(
+          'pointManage/getPersonList?userId=' +
+            this.$Cookie.get('userId') +
+            '&stationId=' +
+            stationId
+        )
+        .then((res) => {
+          if (res.result['站长']) {
+            that.person1 = res.result['站长'];
+          }
+          if (res.result['外线管理员']) {
+            that.person2 = res.result['外线管理员'];
+          }
+          if (res.result['安全员']) {
+            that.person3 = res.result['安全员'];
+          }
+          if (res.result['管道科']) {
+            that.person4 = res.result['管道科'];
+          }
+          this.loading = false;
+        });
+    },
+    getPoint(stationId) {
+      //初始化点
+      let that = this;
+      that.points1 = [];
+      that.points2 = [];
+      that.points3 = [];
+      that.points4 = [];
+      that.points5 = [];
+      that.points6 = [];
+      that.points7 = [];
+      this.loading = true;
+      that.$myHttp
+        .get('pointManage/getMustPointsByStationId?stationId=' + stationId)
+        .then((res) => {
+          if (res.result['第三方施工']) {
+            that.points1 = res.result['第三方施工'];
+          }
+          if (res.result['易打孔盗油点']) {
+            that.points2 = res.result['易打孔盗油点'];
+          }
+          if (res.result['重点穿跨越部位']) {
+            that.points3 = res.result['重点穿跨越部位'];
+          }
+          if (res.result['阀室']) {
+            that.points4 = res.result['阀室'];
+          }
+          if (res.result['汛期防汛重点部位']) {
+            that.points5 = res.result['汛期防汛重点部位'];
+          }
+          if (res.result['高后果区']) {
+            that.points6 = res.result['高后果区'];
+          }
+          if (res.result['高风险段']) {
+            that.points7 = res.result['高风险段'];
+          }
+          // console.log(44554,res,that.points5)
+          this.loading = false;
+        });
+    },
+    //获取权限
+    getpermession() {
+      let url = this.$route.path;
+      let menu = JSON.parse(this.$Cookie.get('menu'));
+      let obj = {};
+      menu.map((val, key) => {
+        if ('/' + val.path == url && val.node.length > 0) {
+          val.node.map((valC, keyC) => {
+            obj[valC.path] = true;
+          });
+        }
+      });
+      this.permessinfo = obj;
+      console.log(888888, obj);
+    },
+
+    //新增回调
+    addbackcom(e) {
+      console.log(444, e);
+      if (this.comtitle == '高后果区') {
+        this.addghgu(e);
+      } else if (this.comtitle == '高风险段') {
+        this.addgfxd(e);
+      } else if (this.comtitle == '易打孔盗油点') {
+        this.addgydk(e);
+      }
+    },
+    addgydk(e) {
+      this.loading = true;
+      let that = this;
+      that.$myHttp.post('pointManage/saveYdk', e).then((res) => {
+        this.loading = false;
+        if (res.success) {
+          window.vm.$message({
+            type: 'success',
+            message: '操作成功',
+            showClose: true,
+            duration: 5000,
+          });
+          this.comtitle = '';
+          this.routesAll = null;
+          this.getRoutes(this.stationId);
+          this.getPerson(this.stationId);
+          this.getPoint(this.stationId);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: res.msg || '新增失败',
+            showClose: true,
+            duration: 5000,
+          });
+        }
+      });
+    },
+    addgfxd(e) {
+      this.loading = true;
+      let that = this;
+      that.$myHttp.post('pointManage/saveGfx', e).then((res) => {
+        this.loading = false;
+        if (res.success) {
+          window.vm.$message({
+            type: 'success',
+            message: '操作成功',
+            showClose: true,
+            duration: 5000,
+          });
+          this.comtitle = '';
+          this.routesAll = null;
+          this.getRoutes(this.stationId);
+          this.getPerson(this.stationId);
+          this.getPoint(this.stationId);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: res.msg || '新增失败',
+            showClose: true,
+            duration: 5000,
+          });
+        }
+      });
+    },
+    addghgu(e) {
+      this.loading = true;
+      let that = this;
+      that.$myHttp.post('pointManage/saveGhg', e).then((res) => {
+        this.loading = false;
+        if (res.success) {
+          window.vm.$message({
+            type: 'success',
+            message: '操作成功',
+            showClose: true,
+            duration: 5000,
+          });
+          this.comtitle = '';
+          this.routesAll = null;
+          this.getRoutes(this.stationId);
+          this.getPerson(this.stationId);
+          this.getPoint(this.stationId);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: res.msg || '新增失败',
+            showClose: true,
+            duration: 5000,
+          });
+        }
+      });
+    },
+
+    getiteminfo(e, type) {
+      console.log(1445, e);
+      this.comtype = 'edit';
+      this.itemid = String(e.STAKEID);
+      this.comtitle = type;
+    },
+  },
+  watch: {},
+  beforeMount() {},
+  beforeDestroy() {},
+  created() {},
+  mounted() {
+    this.getTree();
+
+    this.getpermession();
+  },
+};
+</script>
+<style scoped  lang='less' >
+</style>

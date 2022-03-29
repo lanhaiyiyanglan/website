@@ -1,0 +1,131 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- AP-Map切图规则配置文件 -->
+<MapConfig>
+	<LicenseKey>214342247-11939508-3316530-21889098-663306-9065182</LicenseKey>
+	<LayerLevelnum>11</LayerLevelnum>
+	<Picturewidth>400</Picturewidth>
+	<Pictureheight>300</Pictureheight>
+	<MINlongitude>115.014992</MINlongitude>
+	<MAXlatitude>37.054441</MAXlatitude>
+	<MAXlongitude>116.767673</MAXlongitude>
+	<MINlatitude>35.746266</MINlatitude>
+	<Layer>
+		<ZOOM>1</ZOOM>
+		<CX>0.85563</CX>
+		<CY>0.6417225</CY>
+		<ScaleStr>9公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>2</ZOOM>
+		<CX>0.427815</CX>
+		<CY>0.32086125</CY>
+		<ScaleStr>4.5公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>3</ZOOM>
+		<CX>0.190140</CX>
+		<CY>0.142605</CY>
+		<ScaleStr>2公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>4</ZOOM>
+		<CX>0.09507</CX>
+		<CY>0.0713025</CY>
+		<ScaleStr>1公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>5</ZOOM>
+		<CX>0.038028</CX>
+		<CY>0.028521</CY>
+		<ScaleStr>400米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>6</ZOOM>
+		<CX>0.019014</CX>
+		<CY>0.0142605</CY>
+		<ScaleStr>200米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>7</ZOOM>
+		<CX>0.009507</CX>
+		<CY>0.00713025</CY>
+		<ScaleStr>100米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>8</ZOOM>
+		<CX>0.0047535</CX>
+		<CY>0.003565125</CY>
+		<ScaleStr>50米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>9</ZOOM>
+		<CX>0.00237675</CX>
+		<CY>0.0017825625</CY>
+		<ScaleStr>25米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>10</ZOOM>
+		<CX>0.0009507</CX>
+		<CY>0.000713025</CY>
+		<ScaleStr>10米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>11</ZOOM>
+		<CX>0.00047535</CX>
+		<CY>0.0003565125</CY>
+		<ScaleStr>5米</ScaleStr>
+	</Layer>
+	<NaviLayer>
+		<ZOOM>1</ZOOM>
+		<CX>8</CX>
+		<CY>6</CY>
+		<ScaleStr>50公里</ScaleStr>
+	</NaviLayer>
+	<MapRenderQuery url="http://10.199.254.179:8088/APMapServer"/><!-- http://10.199.254.179:8088/APMapServer -->
+	
+	<MapLayerConfig>
+		
+		<!-- 鹰眼图 -->
+		<maplayer LayerID="NaviMap" Display="true" layerclass="NaviMap" titleLayerClass="1" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="dlg"></CutMapLayer>
+		</maplayer>
+		
+		<maplayer LayerID="2" name="卫星影像" Display="false" layerclass="GoogleMap" url="http://10.199.254.179/liaocheng">
+			<LayerMatching>1=7</LayerMatching>
+			<LayerMatching>2=8</LayerMatching>
+			<LayerMatching>3=9</LayerMatching>
+			<LayerMatching>4=10</LayerMatching>
+			<LayerMatching>5=11</LayerMatching>
+			<LayerMatching>6=12</LayerMatching>
+			<LayerMatching>7=13</LayerMatching>
+			<LayerMatching>8=14</LayerMatching>
+			<LayerMatching>9=15</LayerMatching>
+			<LayerMatching>10=16</LayerMatching>
+			<LayerMatching>11=17</LayerMatching>
+		</maplayer>		
+		<maplayer LayerID="4" name="影像图" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="image" opacityname="image"  minlayernum="1" maxlayernum="11"></CutMapLayer>
+		</maplayer>		
+		<maplayer LayerID="5" name="电子地图" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="geo" opacityname="geo" minlayernum="1" maxlayernum="11"></CutMapLayer>
+		</maplayer>		
+		<maplayer LayerID="6" name="巡线缓冲区" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="bufferzone" opacityname="bufferzone"  minlayernum="8" maxlayernum="12"></CutMapLayer>
+		</maplayer>		
+		<maplayer LayerID="7" name="管道" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="pipe" opacityname="pipe" minlayernum="1" maxlayernum="11"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="8" name="道路" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="traffic" opacityname="traffic" minlayernum="7" maxlayernum="11"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="9" name="工作场所" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="workspace" opacityname="workspace" minlayernum="7" maxlayernum="11"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="10" name="房屋" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="house" opacityname="house" minlayernum="7" maxlayernum="11"></CutMapLayer>
+		</maplayer>	
+		<maplayer LayerID="11" name="注记" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.199.254.179/liaocheng">
+			<CutMapLayer name="marker" opacityname="marker" minlayernum="1" maxlayernum="11"></CutMapLayer>
+		</maplayer>	
+	</MapLayerConfig>
+</MapConfig>

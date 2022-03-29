@@ -1,0 +1,338 @@
+<template>
+   <div
+    class="station"
+    v-loading="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)"
+  >
+        <div class="box">
+            <div class="leftTree">
+        <div class="title">管理处信息列表</div>
+        <el-tree
+            :data="data"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+            node-key="id"
+            highlight-current
+        ></el-tree>
+        </div>
+        <div class="rightBox">
+            <el-row type="flex" class="row-bg" justify="space-around">
+            <el-col>    
+                <div class="block">
+                        <span class="demonstration">日期</span>
+                        <el-date-picker v-model="dateTime" type="date" placeholder="选择日期" value-format="yyyy-MM-dd"></el-date-picker>
+                        <el-button type="primary" @click="search()">查询</el-button>
+                </div>
+                </el-col>
+            <el-col><div class="grid-content bg-purple">  
+                        <el-button type="primary" icon="el-icon-plus" @click="operation('增加巡检日志')">增加</el-button>
+                        <el-button  type="primary" icon="el-icon-edit" @click="operation('修改巡检日志')">修改</el-button>
+                        <el-button type="primary" icon="el-icon-delete" @click="delet()">删除</el-button></div>
+            </el-col>
+            </el-row>
+            <el-row>    
+            <div class="tableBox">
+                <el-table height="calc(100vh - 250px)" :data="tableData.slice((currentPage - 1) * pageSize, currentPage*pageSize)" tooltip-effect="dark" border style="width: 100%"  @selection-change="handleSelectionChange" :header-cell-style="{'text-align':'center'}" :cell-style="{'text-align':'center'}">
+                        <el-table-column type="selection"></el-table-column>
+                        <el-table-column prop="INSPECTIONLOGID" label="序号"></el-table-column>
+                        <el-table-column prop="USERNAME" label="巡检员"></el-table-column>
+                        <el-table-column prop="STATE" label="状态"></el-table-column>
+                        <el-table-column prop="INSPECTIONCONTENT" label="巡检日志"></el-table-column>
+                        <el-table-column prop="INPUTDATE" label="填报时间"></el-table-column>
+                        <el-table-column prop="REVIEWCOMMENT" label="审核意见"></el-table-column>
+                        <el-table-column label="操作">
+                            <template slot-scope="scope">
+                                <el-button type="primary" @click="look(scope.row.INSPECTIONLOGID)"  size="small" plain>查看</el-button>
+                                <el-button type="primary" size="small" @click="editor(scope.row.INSPECTIONLOGID)" plain>编辑</el-button>
+                            </template>
+                        </el-table-column>
+                </el-table>
+            </div>
+            <div class="paginationBox">
+                <el-pagination
+                    background
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[10,15,20]"
+                    :page-size="pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total">
+                    </el-pagination>
+            </div>
+            </el-row>
+        </div>
+        <!-- 新增编辑弹框 -->
+        <detailInspectionlog
+            v-if='show'
+            :title='title'
+            :flag="flag"
+            @close='closeDetail'
+            :formobj='formobj'
+            @sub='submitDetail'
+        />
+        </div>
+   </div>
+</template>
+<script>
+import detailInspectionlog from '../../components/detailInspectionlog.vue';
+
+export default {
+    data() {
+        return {
+               data: [],
+               tableData:[],
+               dateTime:"",
+               loading: false,
+               show:false,
+               title:"增加巡检日志",
+               flag:0,
+               multipleSelection: [],
+               defaultProps:{
+                    children: 'CHILDREN',
+                    label: 'GROUPNAME',
+                    value: 'GROUPCODE',
+               },
+               GROUPCODE:"",//输油站id
+               PARENTGROUPCODE:'',//输油处id
+               formobj:{},
+               currentPage: 1,
+               pageSize: 10,
+               total:0,
+        }
+    },
+    components:{detailInspectionlog},
+    mounted() {
+        this.init();
+    },
+    methods: {
+        init(){
+           this.GROUPCODE="";
+           this.PARENTGROUPCODE="";
+           this.show=false;
+           this.getTree();
+           this.getTableData("");
+        },
+        //树节点
+        getTree() {
+            let that = this;
+            that.$myHttp.get('pointManage/getTreeList?userId=' + sessionStorage.getItem('userId')).then((res) => {
+               that.data = res.result;
+            });
+        },
+        //点击树筛选table表格
+        handleNodeClick(data)
+        {    
+            console.log(data);
+           if(data.PARENTGROUPCODE!=null){
+                this.PARENTGROUPCODE=data.PARENTGROUPCODE;
+                this.GROUPCODE=data.GROUPCODE;
+                this.getTableData(this.GROUPCODE);
+                this.dateTime="";
+           }else{
+                    window.vm.$message({
+                            type: 'error',
+                            message:'请选择一个输油站点',
+                            showClose: true,
+                            duration: 2000,
+                     });
+           }
+        },
+        //获取tableData
+        getTableData(groupCode){
+                this.$myHttp.get('gpsinspectionlog/getlogsbygroupCode?groupCode='+groupCode).then((res)=>{
+                let arr=res.result;
+                if(arr.length>0){
+                    this.tableData=arr.map(v=>{
+                        return {...v,INPUTDATE:this.dateFormat(v.INPUTDATE)}
+                    })
+                }else{
+                    this.tableData=[];
+                }
+                this.total=this.tableData.length;
+           })
+        },
+        dateFormat:function(time) {
+            var date=new Date(time);
+            var year=date.getFullYear();
+            var month= date.getMonth()+1<10 ? "0"+(date.getMonth()+1) : date.getMonth()+1;
+            var day=date.getDate()<10 ? "0"+date.getDate() : date.getDate();
+            var hours=date.getHours()<10 ? "0"+date.getHours() : date.getHours();
+            var minutes=date.getMinutes()<10 ? "0"+date.getMinutes() : date.getMinutes();
+            var seconds=date.getSeconds()<10 ? "0"+date.getSeconds() : date.getSeconds();
+            // 拼接
+            return year+"-"+month+"-"+day+" "+hours+":"+minutes+":"+seconds;
+        },
+        handleSizeChange(val) {
+            this.pageSize=val;//每页多少条
+        },
+        handleCurrentChange(val) {
+            this.currentPage=val;//当前页
+        },
+        handleSelectionChange(val)
+        {
+            this.multipleSelection = val;
+        },
+        //删除
+        delet(){
+           if(this.multipleSelection.length==0||this.multipleSelection.length>1){
+                window.vm.$message({
+                    type: 'error',
+                    message:'请选择一条巡检日志',
+                    showClose: true,
+                    duration: 2000,
+                });
+           }else{
+                let id=parseInt(this.multipleSelection[0].INSPECTIONLOGID);
+                let contentType={
+                   headers:{'Content-Type':'application/json;charset=utf8'},
+                }
+                window.vm.$confirm('确定是否删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                       this.$myHttp.post('gpsinspectionlog/del',id,contentType).then((res) => {
+                               if (res.success) {
+                                    window.vm.$message({
+                                        type: 'success',
+                                        message: res.msg,
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                    this.tableData.forEach((v, i) => {
+                                        if(this.multipleSelection[0].INSPECTIONLOGID == v.INSPECTIONLOGID){
+                                            this.tableData.splice(i, 1);
+                                        }
+                                    })
+                                    this.total=this.tableData.length;
+                                    let currentPage = this.currentPage > Math.ceil(this.total/this.pageSize) ? Math.ceil(this.total/this.pageSize) : this.currentPage;
+                                    this.currentPage = this.currentPage < 1 ? 1 : currentPage;
+                                } else {
+                                    window.vm.$message({
+                                        type: 'error',
+                                        message: res.msg || '操作失败',
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                }
+                       });
+                })
+           }
+        },
+        operation(title){
+            if(title=="修改巡检日志"){
+                if(this.multipleSelection.length==0||this.multipleSelection.length>1){
+                     window.vm.$message({
+                            type: 'error',
+                            message:'请选择一条巡检日志',
+                            showClose: true,
+                            duration: 2000,
+                     });
+                }else{
+                    let id=this.multipleSelection[0].INSPECTIONLOGID;
+                    this.editor(id);
+                }
+            }else{//新增
+                this.add();
+            }
+        },
+        //编辑
+       async editor(id){
+            this.formobj= await this.$myHttp.get('gpsinspectionlog/getlog?id='+id).then((res)=>{
+              return res.result
+            })
+           this.show=true;
+           this.title="修改巡检日志";
+           this.flag=1;
+        },
+        //新增
+        add(){
+            let obj={
+                "gpsInspectionLog": {
+                    "inspectionLogId":"",//日志id
+                    "groupCode":this.GROUPCODE,//输油站id
+                    "groupName":"",//输油站name
+                    "pgroupCode":this.PARENTGROUPCODE,//输油处id
+                    "pgroupName":"",//输油处name
+                    "userId": "",//巡线员id
+                    "userName":"",//巡线员name
+                    "inspectionDate": "",//巡线日期,
+                    "inputDate":"",//填报日期
+                    "inspectionContent": "",//巡线日志
+                    "state":"",//状态
+                    "reviewComment": "",//审核意见
+                    "remark":"",//备注
+                    "reviewUserId":"",//审核人 
+                    "reviewDate":""//审核日期
+                },
+                "fileList": []
+            };
+            this.formobj=Object.assign({},obj);
+            this.show=true;
+            this.title="增加巡检日志";
+            this.flag=1;
+        },
+        //查看
+       async look(id){
+            this.formobj= await this.$myHttp.get('gpsinspectionlog/getlog?id='+id).then((res)=>{
+              return res.result
+            })
+           this.show=true;
+           this.title="查看巡检日志";
+           this.flag=0;
+        },
+        search(){
+           this.$myHttp.get('gpsinspectionlog/getlogsbygroupCodeandinputDate?groupCode='+this.GROUPCODE+"&inputDate="+this.dateTime).then((res)=>{
+              this.tableData=res.result;
+           })
+        },
+        submitDetail(e)
+        {
+            this.$myHttp.post('gpsinspectionlog/save',e).then((res) => {
+                    if (res.success) {
+                        window.vm.$message({
+                            type: 'success',
+                            message: '操作成功',
+                            showClose: true,
+                            duration: 2000,
+                        });
+                        this.show = false;
+                        this.getTableData(this.GROUPCODE);
+                    } else {
+                        window.vm.$message({
+                            type: 'error',
+                            message: res.msg || '操作失败',
+                            showClose: true,
+                            duration: 2000,
+                        });
+                    }
+            });
+        },
+        closeDetail(){
+          this.show=false;
+        }
+     
+    },
+    watch: {
+            '$route' (to, from) { //监听路由是否变化
+                if(to.path != from.path){
+                    this.init();//重新加载数据
+                }
+            }
+    },    
+}
+</script>
+<style lang="less">
+@import 'station.less';
+ .el-row {
+    margin-bottom: 20px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  .paginationBox{margin:20px auto;float:right;color:#ffffff;}
+  .box{position: relative;height: 100%;}
+</style>

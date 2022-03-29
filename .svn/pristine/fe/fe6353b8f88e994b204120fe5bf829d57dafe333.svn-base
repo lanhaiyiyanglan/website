@@ -1,0 +1,133 @@
+<template>
+  <div
+    id="main"
+    class="app-main"
+  >
+    <router-view></router-view>
+  </div>
+</template>
+
+<script>
+export default {
+  mounted() {
+    this.adjustSize();
+    window.addEventListener('resize', this.adjustSize);
+
+    // vue 在页面上显示哪个组件是根据 vue-router 进行控制的，在地址栏上直接输入路由名称，并不能触发 vue-router 的规则，
+    //所以只能通过监听地址的改变，利用回调函数在组件内部进行动态修改路由
+    //hash 就是 URL 地址中 # 字符后面的字符串。
+    //更改它不会导致整个页面重新加载，而且可以定位到元素 id 或 name 与之相同的位置(锚点)。
+    //window.location.hash可以获取到 hash。比如 localhost:8080/#/abcde 的 location.hash="#/abcde"。
+    //通过监听 hash 的状态，来动态修改 vue-router 的路由，是页面进行组件切换，这样就不会导致页面报错或 404 了。
+    //在ie11上从当前A页面(/a)跳转B页面(/b)，在地址栏直接修改路由回车跳转B页面，发现页面还是A页面，但是地址栏地址已经是B页面地址。而且控制台并无报错。
+     if(!!window.ActiveXObject || "ActiveXObject" in window){
+      window.addEventListener('hashchange', () => {
+        console.log("url变化了");
+        let currentPath = window.location.hash.slice(1);
+        console.log("currentPath2=="+currentPath);
+        if (this.$route.path !== currentPath) {
+              this.$router.push(currentPath)
+        }
+      }, false);
+    }
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.adjustSize);
+  },
+  watch: {
+    $route(to) {
+     console.log("我现在是="+to.path);
+    }
+  },
+  methods: {
+    adjustSize() {
+      var remSize = window.innerHeight / 50 || document.body.clientHeight / 50;
+      document.querySelector('html').style.fontSize = remSize + 'px';
+    },
+  },
+  
+};
+</script>
+
+<style>
+.app-main {
+  width: 100%;
+  height: 100%;
+}
+
+.el-popover {
+  height: 50%;
+  overflow: auto;
+}
+.el-input__inner {
+  color: #fff;
+  background: #252932 !important;
+}
+.el-form-item__label {
+  color: #fff;
+}
+.el-input-number__decrease,
+.el-input-number__increase {
+  background: #1e1d21;
+}
+.notxt {
+}
+.notxt .el-form-item__label {
+  color: #000;
+}
+.el-loading-mask {
+  background-color: rgba(24, 24, 24, 0.48);
+}
+.hide .el-upload{
+  display: none!important;
+}
+.spScollor .el-scrollbar__wrap{overflow-x: hidden;}
+.jidu > .el-input__inner,#inspectionDate .el-input__inner{height: 32px;line-height: 32px;}
+#inspectionDate .el-date-editor.el-input{width:100%;}
+#personDialog .el-dialog .el-form-item__label {
+  color: #000;
+}
+#personDialog .el-dialog .el-input__inner,.login-container .el-input__inner{ color: #000!important;background:#ffffff!important;}
+.el-pagination{float:right;}
+.el-menu{border-right: none;}
+.countTable{                     
+    border-collapse: collapse;
+    border-color:#c6c6c6;
+}
+.countTable th{
+    border-color:#c6c6c6;
+    background-color:#ddeeff !important; 
+    font-size:15px;
+    font-weight:normal;
+    text-align:center;
+    height: 40px;
+    line-height: 40px;
+}
+.countTable td{
+    border-color:#c6c6c6;
+    font-size:13px;
+    font-weight:normal;
+    text-align:center;
+    word-break: break-all;
+    min-height:40px;
+    line-height: 40px;
+}
+.countTable tr:nth-child(odd){
+    background-color:#fff !important; 
+}
+.countTable tr:nth-child(even){
+    background-color: #f8f8f8 !important;
+}
+.el-checkbox__inner{border-color:  #409eff;}
+#thirdList .el-form{
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  vertical-align: middle;
+  justify-content:flex-start;
+}
+#thirdList .el-form-item__label{line-height: normal!important;}
+#thirdList .el-form-item{width:32%!important;display:flex;align-items: center;}
+#thirdList .el-form-item__content{margin-left:0!important;width:60%!important;}
+#thirdList .el-form-item2{width:100%!important;}
+</style>

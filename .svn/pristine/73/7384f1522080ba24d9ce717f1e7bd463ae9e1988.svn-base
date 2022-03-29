@@ -1,0 +1,503 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0014)about:internet -->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">	
+    <!-- 
+    Smart developers always View Source. 
+    
+    This application was built using Adobe Flex, an open source framework
+    for building rich Internet applications that get delivered via the
+    Flash Player or to desktops via Adobe AIR. 
+    
+    Learn more about Flex at http://flex.org 
+    // -->
+    <head>
+        <title></title>         
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<!-- Include CSS to eliminate any default margins/padding and set the height of the html element and 
+		     the body element to 100%, because Firefox, or any Gecko based browser, interprets percentage as 
+			 the percentage of the height of its parent container, which has to be set explicitly.  Initially, 
+			 don't display flashContent div so it won't show if JavaScript disabled.
+		-->
+        <style type="text/css" media="screen"> 
+			html, body	{ height:100%; }
+			body { margin:0; padding:0; overflow:auto; text-align:center; 
+			       background-color: #ffffff; }   
+			#flashContent { display:none; }
+        </style>
+		
+		<!-- Enable Browser History by replacing useBrowserHistory tokens with two hyphens -->
+        <!-- BEGIN Browser History required section -->
+        <link rel="stylesheet" type="text/css" href="history/history.css" />
+        <script type="text/javascript" src="history/history.js"></script>
+        <!-- END Browser History required section -->  
+		    
+        <script type="text/javascript" src="swfobject.js"></script>
+        <script type="text/javascript" src="antuMap.js"></script>
+        <script type="text/javascript" src="json2.js"></script>
+        <script type="text/javascript">
+            <!-- For version detection, set to min. required Flash Player version, or 0 (or 0.0.0), for no version detection. --> 
+            var swfVersionStr = "10.0.0";
+            <!-- To use express install, set to playerProductInstall.swf, otherwise the empty string. -->
+            var xiSwfUrlStr = "playerProductInstall.swf";
+            var flashvars = {};
+            var params = {};
+            params.quality = "high";
+            params.bgcolor = "#ffffff";
+            params.allowscriptaccess = "sameDomain";
+            params.allowfullscreen = "true";
+            params.wmode = "opaque";
+            var attributes = {};
+            attributes.id = "AntuMap";
+            attributes.name = "AntuMap";
+            attributes.align = "middle";
+            swfobject.embedSWF(
+                "AntuMap.swf", "flashContent", 
+                "100%", "100%", 
+                swfVersionStr, xiSwfUrlStr, 
+                flashvars, params, attributes);
+			<!-- JavaScript enabled so display the flashContent div in case it is not replaced with a swf object. -->
+			swfobject.createCSS("#flashContent", "display:block;text-align:left;");
+        </script>
+       	<script language="JavaScript" type="text/javascript">
+			function winOpen(URL)
+			{
+				var win;
+				win=window.open(URL, 'target');
+			}
+		</script>        
+    </head>
+    <body>
+        <!-- SWFObject's dynamic embed method replaces this alternative HTML content with Flash content when enough 
+			 JavaScript and Flash plug-in support is available. The div is initially hidden so that it doesn't show
+			 when JavaScript is disabled.
+		-->
+        <div id="flashContent">
+        	<p>
+	        	To view this page ensure that Adobe Flash Player version 
+				10.0.0 or greater is installed. 
+			</p>
+			<script type="text/javascript"> 
+				var pageHost = ((document.location.protocol == "https:") ? "https://" :	"http://"); 
+				document.write("<a href='http://www.adobe.com/go/getflashplayer'><img src='" 
+								+ pageHost + "www.adobe.com/images/shared/download_buttons/get_flash_player.gif' alt='Get Adobe Flash player' /></a>" ); 
+			</script> 
+        </div>
+	   	
+       	<noscript>
+            <object classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" width="100%" height="100%" id="AntuMap">
+                <param name="movie" value="AntuMap.swf" />
+                <param name="quality" value="high" />
+                <param name="bgcolor" value="#ffffff" />
+                <param name="allowScriptAccess" value="sameDomain" />
+                <param name="allowFullScreen" value="true" />
+                <!--[if !IE]>-->
+                <object type="application/x-shockwave-flash" data="AntuMap.swf" width="100%" height="100%">
+                    <param name="quality" value="high" />
+                    <param name="bgcolor" value="#ffffff" />
+                    <param name="allowScriptAccess" value="sameDomain" />
+                    <param name="allowFullScreen" value="true" />
+                <!--<![endif]-->
+                <!--[if gte IE 6]>-->
+                	<p> 
+                		Either scripts and active content are not permitted to run or Adobe Flash Player version
+                		10.0.0 or greater is not installed.
+                	</p>
+                <!--<![endif]-->
+                    <a href="http://www.adobe.com/go/getflashplayer">
+                        <img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash Player" />
+                    </a>
+                <!--[if !IE]>-->
+                </object>
+                <!--<![endif]-->
+            </object>
+	    </noscript>		
+    </body>
+    <script language="JavaScript" type="text/javascript">
+        function addInfo(){
+            var addArr=[],latArr=[],longArr=[];
+            var mapInfo=JSON.parse(sessionStorage.getItem('mapInfo'));
+            var pointFre=sessionStorage.getItem('pointFre');
+            if(pointFre=="4"||pointFre=="else"){
+                var nowTime=sessionStorage.getItem('nowTime');
+                nowTime=nowTime.split('-');
+                nowTime=nowTime[0]+'-'+nowTime[1]+'-'+dayStr;
+                mapInfo.pop();
+                var key=sessionStorage.getItem('pointKey');
+                var optionsDay=[
+                    {
+                        name:'1',
+                        key:'one'
+                    },{
+                        name:'2',
+                        key:'two'
+                    },{
+                        name:'3',
+                        key:'three'
+                    },{
+                        name:'4',
+                        key:'four'
+                    },{
+                        name:'5',
+                        key:'five'
+                    },{
+                        name:'6',
+                        key:'six'
+                    },{
+                        name:'7',
+                        key:'seven'
+                    },{
+                        name:'8',
+                        key:'eight'
+                    },{
+                        name:'9',
+                        key:'nine'
+                    },{
+                        name:'10',
+                        key:'ten'
+                    },{
+                        name:'11',
+                        key:'eleven'
+                    },{
+                        name:'12',
+                        key:'twelve'
+                    },{
+                        name:'13',
+                        key:'thirteen'
+                    },{
+                        name:'14',
+                        key:'fourteen'
+                    },{
+                        name:'15',
+                        key:'fifteen'
+                    },{
+                        name:'16',
+                        key:'sixteen'
+                    },{
+                        name:'17',
+                        key:'seventeen'
+                    },{
+                        name:'18',
+                        key:'eighteen'
+                    },{
+                        name:'19',
+                        key:'nineteen'
+                    },{
+                        name:'20',
+                        key:'twenty'
+                    },{
+                        name:'21',
+                        key:'twenty_one'
+                    },{
+                        name:'22',
+                        key:'twenty_two'
+                    },{
+                        name:'23',
+                        key:'twenty_three'
+                    },{
+                        name:'24',
+                        key:'twenty_four'
+                    },{
+                        name:'25',
+                        key:'twenty_five'
+                    },{
+                        name:'26',
+                        key:'twenty_six'
+                    },{
+                        name:'27',
+                        key:'twenty_seven'
+                    },{
+                        name:'28',
+                        key:'twenty_eight'
+                    },{
+                        name:'29',
+                        key:'twenty_nine'
+                    },{
+                        name:'30',
+                        key:'thirty'
+                    },{
+                        name:'31',
+                        key:'thirty_one'
+                    }
+                ]
+                var dayStr='';
+                for(var i=0;i<optionsDay.length;i++){
+                    if(key==optionsDay[i].key){
+                        dayStr=optionsDay[i].name
+                    }
+                }
+                if(pointFre=="4"){
+                    for(var i=0;i<mapInfo.length;i++){
+                        for(var j=0;j<mapInfo[i].pointList.length;j++){
+                            var markPoint=mapInfo[i].pointList[j].AM;
+                            var obj={};
+                            obj.location={
+                                lat:markPoint.latitude,
+                                lon:markPoint.longitude
+                            }  
+                            obj.toolTip={
+                                "tipWidth": 200, 
+                                "tipHeight": 100, 
+                                "content": "到达状态："+(markPoint[key] ? '已到达':'未到达')+'<br>'+'时间：'+nowTime,
+                                "tipTitle": "桩号："+markPoint.pointname, 
+                            }
+                            obj["alpha"]= 1; 
+                            obj["name"]=markPoint.pointname;
+                            obj["addMouseOverListener"]=true;
+                            obj["imgName"]=markPoint[key] ? "have.png":"havenot.png"; 
+                            obj["addMouseClickListener"]=false;
+                            obj["offsetX"]=10;
+                            obj["offsetY"]=30;
+                            obj["imgRotation"]=0 ; 
+                            addArr.push(obj);
+                            latArr.push(markPoint.latitude);
+                            longArr.push(markPoint.longitude);
+
+                            var markPoint2=mapInfo[i].pointList[j].PM;
+                            var obj2={};
+                            obj2.location={
+                                lat:markPoint2.latitude,
+                                lon:markPoint2.longitude
+                            }  
+                            obj2.toolTip={
+                                "tipWidth": 200, 
+                                "tipHeight": 100, 
+                                "content": "到达状态："+(markPoint2[key] ? '已到达':'未到达')+'<br>'+'时间：'+nowTime,
+                                "tipTitle": "桩号："+markPoint2.pointname, 
+                            }
+                            obj2["alpha"]= 1; 
+                            obj2["name"]=markPoint2.pointname;
+                            obj2["addMouseOverListener"]=true;
+                            obj2["imgName"]=markPoint2[key] ? "have.png":"havenot.png"; 
+                            obj2["addMouseClickListener"]=false;
+                            obj2["offsetX"]=10;
+                            obj2["offsetY"]=30;
+                            obj2["imgRotation"]=0 ; 
+                            addArr.push(obj2);
+                            latArr.push(markPoint2.latitude);
+                            longArr.push(markPoint2.longitude);
+                        }                                            
+                    } 
+                }
+                else{
+                    for(var i=0;i<mapInfo.length;i++){
+                        for(var j=0;j<mapInfo[i].pointList.length;j++){
+                            var markPoint=mapInfo[i].pointList[j];
+                            console.log(markPoint,'添加1')   
+                            var obj={};
+                            obj.location = {
+                                lat:markPoint.latitude,
+                                lon:markPoint.longitude
+                            }  
+                            obj.toolTip = {
+                                "tipWidth": 200, 
+                                "tipHeight": 100, 
+                                "content": "到达状态："+(markPoint[key] ? '已到达':'未到达')+'<br>'+'时间：'+nowTime,
+                                "tipTitle": "桩号："+markPoint.pointname,
+                            }
+                            obj.alpha = 1; 
+                            obj.name = markPoint.pointname;
+                            obj.addMouseOverListener = true;
+                            obj.imgName = markPoint[key] ? "have.png":"havenot.png"; 
+                            obj.addMouseClickListener = false;
+                            obj.offsetX = 10;
+                            obj.offsetY = 30;
+                            obj.imgRotation = 0; 
+                            addArr.push(obj);
+                            latArr.push(markPoint.latitude);
+                            longArr.push(markPoint.longitude);
+                        }                                            
+                    } 
+                }  
+                console.log(addArr,addPointImgMarks,'添加点')  
+                var maxLat=latArr.sort().reverse()[0];
+                var minLat=latArr.sort()[0];
+                var maxLong=longArr.sort().reverse()[0];
+                var minLong=longArr.sort()[0];
+                console.log(minLong, minLat, maxLong, maxLat,'范围')  
+                zoomToExtent(minLong, minLat, maxLong, maxLat);
+                //setMapCenter((minLong+maxLong)/2,(minLat+maxLat)/2)
+                addPointImgMarks(JSON.stringify(addArr));  
+            }
+            if(pointFre=="5"){
+                var obj={};
+                obj.alpha= 1; 
+                obj.locked=false;
+                obj.name= "line";
+                console.log(mapInfo[0].lineDetail);
+                obj.toolTip={
+                        "tipWidth": 200,
+                        "tipHeight":180,
+                        "content": "输油处："+mapInfo[0].lineDetail.AREANAME+"<br>输油站："+mapInfo[0].lineDetail.STATIONNAME+"<br>管段名称："+mapInfo[0].lineDetail.ROUTENAME+"<br>管段类型："+mapInfo[0].lineDetail.TYPENAME
+                        +"<br>起点桩号:"+mapInfo[0].lineDetail.STARTSTAKE+"<br>终点桩号:"+mapInfo[0].lineDetail.ENDSTAKE+"<br>管段长度:"+mapInfo[0].lineDetail.MILE+"KM",
+                        "tipTitle": "管段信息"
+                };
+                obj.addMouseOverListener=true;
+                obj.addMouseClickListener=false;
+                obj.lineStyle={"thickness": 3,"color":65280};
+                obj.points=[];
+                for(var i=0;i<mapInfo.length;i++){
+                    for(var j=0;j<mapInfo[i].pointList.length;j++){
+                        obj.points.push({
+                            lat:mapInfo[i].pointList[j].latitude,
+                            lon:mapInfo[i].pointList[j].longitude
+                        }); 
+                        latArr.push(mapInfo[i].pointList[j].latitude);
+                        longArr.push(mapInfo[i].pointList[j].longitude);
+                    }                                            
+                } 
+                addArr.push(obj);
+                var maxLat=latArr.sort().reverse()[0];
+                var minLat=latArr.sort()[0];
+                var maxLong=longArr.sort().reverse()[0];
+                var minLong=longArr.sort()[0]; 
+                zoomToExtent(minLong, minLat, maxLong, maxLat);
+                addPolylineMarks(JSON.stringify(addArr)); 
+            }
+            if(pointFre=="14"){
+                console.log("here");
+                console.log(mapInfo);
+                var obj={};
+                obj.alpha= 1; 
+                obj.locked=false;
+                obj.name= "line";
+                obj.addMouseOverListener=true;
+                obj.addMouseClickListener=false;
+                obj.toolTip={
+                        "tipWidth": 100,
+                        "tipHeight":70,
+                        "content": "代巡人："+mapInfo[0].PERSONNAME,
+                        "tipTitle": "代巡轨迹"
+                };
+                obj.lineStyle={"thickness": 3,"color":65280};
+                obj.points=[];
+                for(var i=0;i<mapInfo.length;i++){
+                    for(var j=0;j<mapInfo[i].pointList.length;j++){
+                        obj.points.push({
+                            lat:mapInfo[i].pointList[j].latitude,
+                            lon:mapInfo[i].pointList[j].longitude
+                        }); 
+                        latArr.push(mapInfo[i].pointList[j].latitude);
+                        longArr.push(mapInfo[i].pointList[j].longitude);
+                    }                                            
+                } 
+                addArr.push(obj);
+                /**/
+                var addArr2=[];
+                var mapInfo2=JSON.parse(sessionStorage.getItem('mapInfo2'));
+                console.log(mapInfo2);
+                var obj2={};
+                obj2.alpha= 1; 
+                obj2.locked=false;
+                obj2.name= "line2";
+                obj2.addMouseOverListener=true;
+                obj2.addMouseClickListener=false;
+                obj2.toolTip={
+                        "tipWidth": 100,
+                        "tipHeight":70,
+                        "content": "被代巡人："+mapInfo2[0].PERSONNAME,
+                        "tipTitle": "代巡轨迹"
+                };
+                obj2.lineStyle={"thickness": 3,"color":5066239};
+                obj2.points=[];
+                for(var i=0;i<mapInfo2.length;i++){
+                    for(var j=0;j<mapInfo2[i].pointList.length;j++){
+                        obj2.points.push({
+                            lat:mapInfo2[i].pointList[j].latitude,
+                            lon:mapInfo2[i].pointList[j].longitude
+                        }); 
+                        latArr.push(mapInfo2[i].pointList[j].latitude);
+                        longArr.push(mapInfo2[i].pointList[j].longitude);
+                    }                                            
+                } 
+                addArr2.push(obj2);
+                var maxLat=latArr.sort().reverse()[0];
+                var minLat=latArr.sort()[0];
+                var maxLong=longArr.sort().reverse()[0];
+                var minLong=longArr.sort()[0]; 
+				
+                zoomToExtent(minLong, minLat, maxLong, maxLat);
+                console.log(minLong, minLat, maxLong, maxLat);
+                addPolylineMarks(JSON.stringify(addArr));
+                addPolylineMarks(JSON.stringify(addArr2)); 
+            }
+            if(pointFre=="13"){
+                 for(var i=0;i<mapInfo.length;i++){
+                        for(var j=0;j<mapInfo[i].pointList.length;j++){
+                            var markPoint=mapInfo[i].pointList[j];
+                            var obj={};
+                            obj.location = {
+                                lat:markPoint.latitude,
+                                lon:markPoint.longitude
+                            }  
+                            obj.toolTip = {
+                                "tipWidth": 200, 
+                                "tipHeight": 100, 
+                                "content": "到达状态：已到达"+'<br>'+'时间：'+sessionStorage.getItem("DT"),
+                                "tipTitle": "桩号："+markPoint.pointname,
+                            }
+                            obj.alpha = 1; 
+                            obj.name = markPoint.pointname;
+                            obj.addMouseOverListener = false;
+                            obj.imgName = "alarm_1_00.png", 
+                            obj.addMouseClickListener = true;
+                            obj.offsetX = 0;
+                            obj.offsetY = 0;
+                            obj.imgRotation = 0; 
+                            addArr.push(obj);
+                        }                                            
+                 } 
+                 zoomToCenter(8, obj.location.lon, obj.location.lat);
+                // let addArr=[
+                //     {
+                //         "location": {
+                //             "lat": 36.781605000000006, 
+                //             "lon": 118.24758829999999
+                //         }, 
+                //         "toolTip": {
+                //             "tipWidth": 200, 
+                //             "tipHeight": 100, 
+                //             "content":"到达状态：已到达"+'<br>'+'时间：'+sessionStorage.getItem("DT"),
+                //             "tipTitle": "标题"
+                //         }, 
+                //         "alpha": 1, 
+                //         "name": "image0", 
+                //         "addMouseOverListener": false, 
+                //         "imgName": "alarm_1_00.png", 
+                //         "addMouseClickListener": true, 
+                //         "offsetX": 0, 
+                //         "offsetY": 0, 
+                //         "imgRotation": 0
+                //     },
+                //     {
+                //         "location": {
+                //             "lat": 36.80160500000001, 
+                //             "lon": 118.26758829999999
+                //         }, 
+                //         "toolTip": {
+                //             "tipWidth": 200, 
+                //             "tipHeight": 100, 
+                //             "content": "上地信息路一号", 
+                //             "tipTitle": "标题"
+                //         }, 
+                //         "alpha": 1, 
+                //         "name": "image1", 
+                //         "addMouseOverListener": false, 
+                //         "imgName": "alarm_1_00.png", 
+                //         "addMouseClickListener": true, 
+                //         "offsetX": 0, 
+                //         "offsetY": 0, 
+                //         "imgRotation": 0
+                //     }
+                // ];
+                console.log(addArr);
+                addPointImgMarks(JSON.stringify(addArr));  
+            }         
+        }
+        function loadMapComplete(){
+            setTimeout(function(){
+                addInfo();
+            },1000)
+        }
+        
+    </script>
+</html>

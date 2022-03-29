@@ -1,0 +1,191 @@
+<style scoped lang="less">
+@import 'main.less';
+</style>
+<template>
+  <div class="home">
+    <div class='home_header'>
+      <img
+        class='icon'
+        src="./images/logo.png"
+      />
+      <span class='logo'>GPS管道巡线情况统计平台</span>
+      <span class='firstTree'>
+        <span
+          v-for="(value,key) in treedata"
+          :class='[activeKey==key?"itemTreeA":"itemTree"]'
+          @click="linkTo1(value.path,key)"
+          :key='key'
+        >
+          <img :src="value.iconA" />
+          <span>{{value.name}}</span>
+        </span>
+        <span class='name'>{{userId}}</span>
+      </span>
+    </div>
+    <div class='leftTree'>
+      <span
+        v-for="(value,key) in secondTree"
+        :class='[activeKeyS==key?"itemTreeA":"itemTree"]'
+        @click="linkTo2(value.path,key)"
+        :key='key'
+      >
+        <img :src="[activeKeyS==key?value.iconA:value.icon]" />
+        <span>{{value.name}}</span>
+      </span>
+    </div>
+    <div
+      class='contentBox'
+      v-if="secondTree.length>0"
+    >
+      <keep-alive>
+        <router-view></router-view>
+      </keep-alive>
+    </div>
+    <!-- <div
+      class='contentBox'
+      v-if="secondTree.length==0"
+      :loading='true'
+    >
+      5555
+    </div> -->
+  </div>
+</template>
+<script>
+import { digui } from '../libs/xml';
+export default {
+  components: {},
+  data() {
+    return {
+      activeKey: '0', //一级菜单选中
+      activeKeyS: '0', //二级菜单选中
+      userId: 'admin',
+      treedata: [
+        // {
+        //     key:'0',
+        //     name:'业务报表',
+        //     path:'/1300000000',
+        //     icon:require('./images/icon/ywbb.png'),
+        //     iconA:require('./images/icon/ywbb_a.png'),
+        //     children:[
+        //         {
+        //             key:'0',
+        //             name:'分频次考核',
+        //             path:'/1301000000',
+        //             icon:require('./images/icon/task.png'),
+        //             iconA:require('./images/icon/task_a.png'),
+        //         },{
+        //             key:'1',
+        //             name:'按站场考核',
+        //             path:'/1302000000',
+        //             icon:require('./images/icon/line.png'),
+        //             iconA:require('./images/icon/line_a.png'),
+        //         },{
+        //             key:'2',
+        //             name:'站场信息统计',
+        //             path:'/1303000000',
+        //             icon:require('./images/icon/sj.png'),
+        //             iconA:require('./images/icon/sj_a.png'),
+        //         }
+        //     ]
+        // }
+      ],
+      secondTree: [],
+    };
+  },
+  computed: {},
+  methods: {
+    linkTo1(pathName, key) {
+      //1级菜单跳转
+      // this.$router.push({
+      //   name: pathName,
+      // })
+      // this.activeKey=key
+    },
+    linkTo2(pathName, key) {
+      //2级菜单跳转
+      this.$router.push({
+        path: pathName,
+      });
+      this.activeKeyS = key;
+    },
+    getquanxian(userId) {
+      this.$myHttp.get('gpsGroups/getPurview?userId=' + userId).then((res) => {
+     // this.$myHttp.get('/gpsGroups/getPurview?userId=admin').then((res) => {
+        let ss = JSON.parse(res.result);
+        //  console.log(111111,ss,digui([ss.node]))
+        this.treedata = digui([ss.node]);
+        console.log(this.treedata);
+        if (this.treedata[0].node.length == 0) {
+          this.secondTree = this.treedata;
+        } else {
+          this.secondTree = this.treedata[0].node;
+        }
+
+        // console.log(668855, this.treedata, this.secondTree);
+        sessionStorage.setItem('menu', JSON.stringify(this.treedata[0].node));
+        this.treedata[0].node.map((val, key) => {
+          if (val.path == this.$route.path.split('/')[1]) {
+            this.activeKeyS = key;
+            
+          }
+        });
+        if(this.$route.path.split('/')[1]=='home'){
+          if(this.secondTree.length>0){
+            this.$router.push({path:this.secondTree[0].path})
+          }
+          
+        }
+      });
+    },
+  },
+  watch: {
+    $route(to, from) {
+      let treedata = this.treedata;
+      let path = to.path.split('/')[1];
+      // console.log(55555555, path);
+      for (let i = 0; i < treedata.length; i++) {
+        if (treedata[i].path == path) {
+          this.activeKey == treedata[i].key;
+          this.secondTree = this.treedata[i].children;
+        }
+      }
+    },
+  },
+  beforeMount() {
+    // let activeKey=this.activeKey;
+    // let treedata=this.treedata;
+    // this.secondTree=this.treedata[activeKey].children
+  },
+  beforeDestroy() {},
+  created() {},
+  mounted() {
+    let url = window.location.href;
+    let userArr = url.split('?');
+    let userId = "admin";
+    if (userArr && userArr.length > 1) {
+      userId = userArr[1].split('#')[0];
+    }
+    if (sessionStorage.getItem('userId')) {
+      userId = sessionStorage.getItem('userId');
+      //userId="admin";
+    }
+    // console.log(888, userId);
+    if (userId) {
+       sessionStorage.setItem('userId', userId);
+     //sessionStorage.setItem('userId',"admin");
+      this.userId = userId;
+      this.getquanxian(userId);
+    } else {
+      window.vm.$message({
+        type: 'error',
+        message: '未登录',
+        showClose: true,
+        duration: 5000,
+      });
+      sessionStorage.setItem('userId', undefined);
+    }
+  },
+};
+</script>
+<style scoped>
+</style>

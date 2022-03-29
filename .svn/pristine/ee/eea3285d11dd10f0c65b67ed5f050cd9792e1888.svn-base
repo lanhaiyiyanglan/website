@@ -1,0 +1,413 @@
+<template>
+    <div class="box">
+            <el-form :inline="true" :model="form" class="form">
+                    <el-form-item label="输油处：" prop="AREAID">
+                            <el-select
+                                size="small"
+                                v-model="form.AREAID"
+                                placeholder="请选择输油处"
+                                @change='changePlace'
+                                >
+                                <el-option
+                                    v-for='item in placelist'
+                                    :key='item.GROUPCODE'
+                                    :label="item.GROUPNAME"
+                                    :value="item.GROUPCODE"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item label="输油站：" prop="STATIONID">
+                            <el-select
+                                size="small"
+                                v-model="form.STATIONID"
+                                placeholder="请选择输油站"
+                                @change="changeSelect"
+                                >
+                                <el-option
+                                    v-for='item in stationlist'
+                                    :key='item.GROUPCODE'
+                                    :label="item.GROUPNAME"
+                                    :value="item.GROUPCODE"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item label="日期：" prop="dateTime">
+                           <el-date-picker
+                                size="small"
+                                v-model="form.dateTime"
+                                type="daterange"
+                                value-format="yyyy-MM-dd"
+                                format="yyyy-MM-dd"
+                                @change="changeDate"
+                                 start-placeholder="开始日期" end-placeholder="结束日期">
+                           </el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="报警类型：" prop="alarmStyle">
+                            <el-select
+                                size="small"
+                                style="width:120px;"
+                                v-model="form.alarmStyle"
+                                @change="changeSelect"
+                                placeholder="请选择报警类型"
+                                >
+                                <el-option
+                                    v-for='item in alarmlist'
+                                    :key='item.CODEID'
+                                    :label="item.CODENAME"
+                                    :value="item.CODEID"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item label="处理类型：" prop="dealStyle">
+                            <el-select
+                                size="small"
+                                style="width:120px;"
+                                v-model="form.dealStyle"
+                                @change="changeSelect"
+                                placeholder="请选择处理类型"
+                                >
+                                <el-option
+                                    v-for='item in deallist'
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value"
+                                ></el-option>
+                            </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button  size="small" type="primary" @click="search()">查询</el-button>
+                    </el-form-item>
+                    <!-- <el-form-item>
+                        <el-button size="small" type="primary"  @click="exportToExcel">导出</el-button>
+                    </el-form-item> -->
+            </el-form>
+            <div class="tableBox">
+                <h3>国家石油天然气管网集团有限公司华南分公司</h3>
+                <template v-if="times.length>1">
+                    <p>代巡情况统计表({{times[0]}} - {{times[1]}})</p>
+                </template>
+                <template v-else>
+                    <p>代巡情况统计表</p>
+                </template>
+                <div  id="tableExport" v-show="showTable">
+                    <el-table  :default-sort = "{prop: 'STATUS', order: 'ascending'}" height="calc(100vh - 330px)" :data="tableData.slice((currentPage - 1) * pageSize, currentPage*pageSize)" tooltip-effect="dark" border style="width: 100%"   :header-cell-style="{'text-align':'center'}" :cell-style="{'text-align':'center'}">
+                        <el-table-column  type="index" label="序号" width="50px;">
+                            <template slot-scope="scope">
+                                <span>{{(currentPage - 1) * pageSize + scope.$index + 1}}</span>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="AREANAME" label="管理处"></el-table-column>
+                        <el-table-column prop="STATIONNAME" label="输油站"></el-table-column>
+                        <el-table-column prop="PERSONNAME" label="代巡人"></el-table-column>
+                        <el-table-column prop="BPERSONNAME" label="被代巡人"></el-table-column>
+                        <el-table-column prop="BEGINTIME" label="代巡开始时间"></el-table-column>
+                        <el-table-column prop="ENDTIME" label="代巡结束时间"></el-table-column>
+                        <el-table-column prop="STATUS" label="处理状态">
+                            <template slot-scope="scope">
+                                <template v-if="scope.row.STATUS==0">
+                                     未处理
+                                </template>
+                                <template v-else-if="scope.row.STATUS==1">
+                                     已处理
+                                </template>
+                                <template v-else>
+                                     全部
+                                </template>
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="ALARMTYPECN" label="报警类型"></el-table-column>
+                        <el-table-column prop="USERNAME" label="处理人"></el-table-column>
+                        <el-table-column prop="HANDLETIME" label="处理时间"></el-table-column>
+                        <el-table-column prop="DESCNOTE" label="处理描述"></el-table-column>
+                        <el-table-column  label="操作" width="200px">
+                             <template slot-scope="scope">
+                                 <template v-if="scope.row.STATUS==0">
+                                     <el-button type="primary" @click="goHandle(scope.row)"  size="small" plain>去处理</el-button>
+                                 </template>
+                                 <el-button type="primary" size="small" @click="lookPoint(scope.row)" plain>轨迹查看</el-button>
+                             </template>
+                        </el-table-column>
+                 </el-table>
+                </div>
+            </div>
+            <div class="paginationBox" v-show="showTable">
+                <el-pagination
+                    background
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[10,15,20]"
+                    :page-size="pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total">
+                    </el-pagination>
+            </div>
+            <div class="mapBox" v-if="mapBool">
+                <div class="conBox">
+                    <div class="title">地图展示<span
+                        class="close"
+                        @click="closeMap"
+                    >{{"×"}}</span></div>
+                    <iframe src="/SinopecPatrol/statistics/static/AntuMap/AntuMap.html"></iframe>
+                    <!-- <iframe :src="src"></iframe> -->
+                </div>
+            </div>
+            <dealPatrol
+             :formobj='formobj'
+             v-if="showDeal"
+             @close="closeDeal"
+             @sub='submitDetail'
+            >
+            </dealPatrol>
+    </div>
+</template>
+<script>
+import dealPatrol from '../../components/dealPatrol.vue'
+// import { tableToExcel } from '../../libs/xml';
+export default {
+    components: { dealPatrol },
+    data(){
+        return{
+            form: {
+                AREAID: '',
+                STATIONID: '',
+                dateTime:'',
+                alarmStyle:'',
+                dealStyle:'',
+            },
+            placelist:[],
+            stationlist:[],
+            alarmlist:[],
+            deallist:[
+                {
+                    value: '',
+                    label: '全部'
+                },
+                {
+                    value: '0',
+                    label: '未处理'
+                }, 
+                {
+                    value: '1',
+                    label: '已处理'
+                },
+            ],
+            tableData:[],
+            times:[],
+            currentPage: 1,
+            pageSize: 10,
+            total:0,
+            //src:"./static/AntuMap/AntuMap.html",
+            mapBool:false,
+            showTable:false,
+            formobj:{},
+            showDeal:false,
+        }
+    },
+    watch: {
+        '$route' (to, from) { //监听路由是否变化
+                    if(to.path != from.path){
+                        this.init();//重新加载数据
+                    }
+        }
+    },
+    mounted(){
+        this.init();
+    },
+    methods:{
+         init(){
+            this.form.AREAID="";
+            this.form.dateTime="";
+            this.form.alarmStyle="";
+            this.form.dealStyle="";
+            this.getAllArea();//获取输油处
+            this.changePlace(this.form.AREAID);//根据输油处获取输油站
+            this.getAlarmType();//获取报警类型
+            this.total=0;
+            this.currentPage=1;
+        },
+        handleSizeChange(val) {
+            this.pageSize=val;//每页多少条
+        },
+        handleCurrentChange(val) {
+            this.currentPage=val;//当前页
+        },
+        changeDate(t){
+          if(t==null){
+              this.times=[];
+              this.form.dateTime='';
+          }else{
+              this.times=t;
+          }
+          this.showTable=false;
+        },
+         //获取输油处
+        getAllArea(){
+            let url='gpsGroups/getAllArea?userId=' + this.$Cookie.get('userId');
+            this.$myHttp.get(url).then((res) => {
+                this.placelist = res.result;
+            });
+            this.showTable=false;
+        },
+        //获取输油站
+        changePlace(val){
+                this.form.STATIONID="";
+                let url='gpsGroups/getStationsByArea?userId=' +this.$Cookie.get('userId') +'&groupCode=' +val;
+                this.$myHttp.get(url).then((res) => {
+                  this.stationlist = res.result;
+                });
+                this.showTable=false;
+        },
+        //获取报警类型
+        getAlarmType(){
+            this.showTable=false;
+            this.$myHttp.get('gpsGroups/getApCodomainsByCode?code=gps_alarms_isok').then((res) => {
+                  this.alarmlist = res.result;
+                  this.alarmlist.push({
+                      CODEID: "",CODENAME: "全部"
+                  })
+            });
+        },
+        changeSelect(){
+           this.showTable=false;
+        },
+        //查询数据
+        search(){
+            let contentType={
+                headers:{"content-type": "application/json"},
+            }
+            let params={
+            "alarmType":this.form.alarmStyle,
+            "areaId":this.form.AREAID,
+            "endDate":this.times[1],
+            "startDate":this.times[0],
+            "stationId":this.form.STATIONID,
+            "status":this.form.dealStyle,
+            "userId":this.$Cookie.get('userId')
+            };
+            this.$myHttp.post('daiXun/getDaiXunList',JSON.stringify(params),contentType).then((res) => {
+                this.tableData=res.result;
+                this.total=this.tableData.length;
+                let currentPage = this.currentPage > Math.ceil(this.total/this.pageSize) ? Math.ceil(this.total/this.pageSize) : this.currentPage;
+                this.currentPage = this.currentPage < 1 ? 1 : currentPage;
+                this.showTable=true;
+            });
+        },
+        //查看轨迹
+        lookPoint(obj){
+            let beginTime=obj.BEGINTIME;
+            let endTime=obj.ENDTIME;
+            let PERSONID=obj.PERSONID;
+            let BPERSONID=obj.BPERSONID;
+            let name1=obj.PERSONNAME;
+            let name2=obj.BPERSONNAME;
+           this.$myHttp.get('daiXun/getPointList?beginTime='+beginTime+"&endTime="+endTime+"&personId="+PERSONID).then((res)=>{
+                   if (res.success) {
+                        let arr=res.result.map((v)=>{
+                            return {longitude:v.LONGITUDE,latitude:v.LATITUDE};
+                        })
+                        let  temp=[{pointList:arr,PERSONNAME:name1}];
+                        sessionStorage.setItem('mapInfo',JSON.stringify(temp));
+                    }
+           })
+           this.$myHttp.get('daiXun/getPointList?beginTime='+beginTime+"&endTime="+endTime+"&personId="+BPERSONID).then((res)=>{
+                   if (res.success) {
+                        let arr2=res.result.map((v)=>{
+                            return {longitude:v.LONGITUDE,latitude:v.LATITUDE};
+                        })
+                        let  temp2=[{pointList:arr2,PERSONNAME:name2}];
+                        sessionStorage.setItem('mapInfo2',JSON.stringify(temp2));
+                    }
+           })
+           sessionStorage.setItem('pointFre', '14');
+           this.mapBool = true;
+        },
+        closeMap() {
+            this.mapBool = false;
+            sessionStorage.setItem('mapInfo', null);
+        },
+        //去处理
+        goHandle(obj){
+           this.formobj=obj;
+           this.showDeal=true;
+        },
+        //关闭处理页面
+        closeDeal(){
+           this.showDeal=false;
+        },
+        //保存处理结果
+        submitDetail(e){
+            this.$myHttp.post('daiXun/updateDaiXun',e).then((res)=>{
+                if(res.success){
+                    window.vm.$message({
+                            type: 'success',
+                            message: '操作成功',
+                            showClose: true,
+                            duration: 2000,
+                    });
+                    this.showDeal=false;
+                }
+                this.search();
+            })
+        },
+        //导出
+        // exportToExcel(){
+        //     tableToExcel('tableExport', '代巡统计表');
+        // }
+    },
+}
+</script>
+<style scoped>
+.box{position: relative;width:100%;height: 100%;}
+.form{margin:2vh auto;width:98%;}
+.tableBox{width:98%;color:#000000;margin:2vh auto;font-size:13px;text-align: center;}
+.tableBox h3{color:#26f4ff;font-size:20px;padding:0px 0 10px 0;}
+.tableBox p{color: #26f4ff;font-size: 14px;height:20px;line-height: 20px;margin-bottom:10px;}
+.export-btn{color: #fff;background-color: #409eff;border-color: #409eff;}
+.spScollor table{
+    border-collapse: collapse;
+    width:90%;
+    border:1px solid #c6c6c6 !important;
+    margin:0 auto;
+    border-spacing: 0;
+}
+.el-form-item{margin-bottom: 0!important;}
+.mapBox {
+     background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 99999999;
+}
+ .mapBox .conBox .title .close {
+    position: absolute;
+    height: 30px;
+    line-height: 30px;
+    width: 30px;
+    right: 15px;
+    top: 15px;
+    font-size: 25px;
+    cursor: pointer;
+}
+.mapBox .conBox {
+    height: 90%;
+    width: 90%;
+    margin-top: 2.5%;
+    margin-left: 5%;
+}
+.mapBox .conBox .title {
+    position: relative;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    background: #fff;
+    border-bottom: 1px solid #ccc;
+    color: #000000;
+}
+.mapBox .conBox iframe {
+    height: calc((100% - 60px));
+    width: 100%;
+}
+</style>

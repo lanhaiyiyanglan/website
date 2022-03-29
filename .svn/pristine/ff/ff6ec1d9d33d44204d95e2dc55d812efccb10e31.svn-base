@@ -1,0 +1,348 @@
+<template>
+    <div class="box">
+        <el-row>
+            <el-button type="primary" icon="el-icon-plus" @click="operation('新增段长信息')">新增</el-button>
+            <el-button type="primary" icon="el-icon-edit" @click="operation('修改段长信息')">修改</el-button>
+            <el-button type="primary" icon="el-icon-delete" @click="delet()">删除</el-button>
+            <el-button type="primary" icon="el-icon-search" @click="search()">查询</el-button>
+            <el-button type="primary" icon="el-icon-map-location" @click="site()">定位</el-button>
+            <el-button type="primary" icon="el-icon-view" @click="operation('查看段长信息')">查看</el-button>
+        </el-row>
+        <el-row>
+            <el-table :data="tableData.slice((currentPage - 1) * pageSize, currentPage*pageSize)" height="calc(100vh - 230px)" border style="width: 100%" tooltip-effect="dark" @selection-change="handleSelectionChange" :header-cell-style="{'text-align':'center'}" :cell-style="{'text-align':'center'}">
+                <el-table-column type="selection" width="55"></el-table-column>
+                <el-table-column prop="AREANAME" label="输油处"></el-table-column>
+                <el-table-column prop="STATIONNAME" label="输油站"></el-table-column>
+                <el-table-column prop="ROUTENAME" label="管段名称"></el-table-column>
+                <el-table-column prop="TYPENAME" label="管段类型"></el-table-column>
+                <el-table-column prop="STARTSTAKE" label="起点桩号"></el-table-column>
+                <el-table-column prop="ENDSTAKE" label="终点桩号"></el-table-column>
+                <el-table-column prop="MILE" :label="'管段长度 | (KM)'" :render-header="renderheader"></el-table-column>
+                <el-table-column prop="DSFNum" :label="'第三方|施工点数'" :render-header="renderheader"></el-table-column>
+                <el-table-column prop="GFXNum" :label="'高风险|段数'" :render-header="renderheader"></el-table-column>
+                <el-table-column prop="GHGNum" :label="'高后果|区数'" :render-header="renderheader"></el-table-column>
+                <el-table-column prop="PERSONNAME" label="段长姓名" min-width="120px"></el-table-column>
+                <el-table-column prop="PHONE" label="联系方式" min-width="120px"></el-table-column>
+                <el-table-column prop="NOTE" label="备注"></el-table-column>
+            </el-table>
+            <div class="paginationBox">
+                <el-pagination
+                    background
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+                    :current-page="currentPage"
+                    :page-sizes="[10,15,20]"
+                    :page-size="pageSize"
+                    layout="total, sizes, prev, pager, next, jumper"
+                    :total="total">
+                    </el-pagination>
+            </div>
+        </el-row>
+         <!-- 新增编辑弹框 -->
+        <detail-duan-chang
+            v-if='show'
+            :title='title'
+            :flag="flag"
+            @close='closeDetail'
+            :formobj='formobj'
+            @sub='submitDetail'
+        ></detail-duan-chang>
+        <search
+            v-if='showSearch'
+            :title="searchTitle"
+            :isGd="0"
+            :formobj='formobj'
+            @close='closeSearch'
+            @sub2='submitSearch'
+         ></search>
+         <div class="mapBox" v-if="mapBool">
+            <div class="conBox">
+                <div class="title">地图展示<span
+                    class="close"
+                    @click="closeMap"
+                >{{"×"}}</span></div>
+                <iframe src="/SinopecPatrol/statistics/static/AntuMap/AntuMap.html"></iframe>
+            </div>
+        </div>
+    </div>
+</template>
+<script>
+import detailDuanChang from '../../components/detailDuanChang.vue';
+import Search from '../../components/search.vue';
+  export default {
+    components: {detailDuanChang, Search },
+    data() {
+      return {
+        mapBool: false, //展示地图
+        tableData: [],
+        multipleSelection:[],
+        title:"新增管段信息",
+        show:false,
+        formobj: {},
+        flag:1,
+        showSearch:false,
+        searchTitle:"查询段长",
+        params:{},
+        obj:{
+          "areaId":"",
+          "personName":"",
+          "pipeName":"",
+          "pipeType":0,
+          "stationId":"",
+          "userId":sessionStorage.getItem('userId')
+        },
+        currentPage: 1,
+        pageSize: 10,
+        total:0,
+      }
+    },
+    mounted() {
+       this.init();
+    },
+   methods:{
+       init(){
+            this.submitSearch(this.obj);
+       },
+        handleSizeChange(val) {
+            this.pageSize=val;//每页多少条
+        },
+        handleCurrentChange(val) {
+            this.currentPage=val;//当前页
+        },
+        handleSelectionChange(val)
+        {
+            this.multipleSelection = val;
+        },
+        operation(title){
+            if(title=="修改段长信息"||title=="查看段长信息"){
+                if(this.multipleSelection.length==0||this.multipleSelection.length>1){
+                     window.vm.$message({
+                            type: 'error',
+                            message:'请选择一个管段',
+                            showClose: true,
+                            duration: 2000,
+                     });
+                }else{
+                    this.formobj=this.multipleSelection[0];
+                    this.show=true;
+                    this.title=title;
+                }
+            }else{//新增
+                    this.formobj={};
+                    this.show=true;
+                    this.title=title;
+            }
+            if(title=="查看段长信息"){
+                this.flag=0;
+            }else{
+                this.flag=1;
+            }
+        },
+        //关闭弹框组件
+        closeDetail() {
+          this.show=false;
+        },
+        closeSearch(){
+            this.showSearch=false;
+        },
+         //删除段长
+        delet(){
+           if(this.multipleSelection.length==0||this.multipleSelection.length>1){
+                window.vm.$message({
+                    type: 'error',
+                    message:'请选择管段',
+                    showClose: true,
+                    duration: 2000,
+                });
+           }else{
+                let id=this.multipleSelection[0].SERIALID;
+                window.vm.$confirm('确定是否删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                       this.$myHttp.get('pipeMana/deletePipeMana?userId='+sessionStorage.getItem('userId') +'&id=' +id).then((res) => {
+                               if (res.success) {
+                                    window.vm.$message({
+                                        type: 'success',
+                                        message: res.msg,
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                    this.tableData.forEach((v, i) => {
+                                        if(this.multipleSelection[0].SERIALID == v.SERIALID){
+                                            this.tableData.splice(i, 1);
+                                        }
+                                    })
+                                    this.total=this.tableData.length;
+                                    let currentPage = this.currentPage > Math.ceil(this.total/this.pageSize) ? Math.ceil(this.total/this.pageSize) : this.currentPage;
+                                    this.currentPage = this.currentPage < 1 ? 1 : currentPage;
+                                } else {
+                                    window.vm.$message({
+                                        type: 'error',
+                                        message: res.msg || '操作失败',
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                }
+                       });
+                })
+           }
+        },
+        //新增编辑段长
+        submitDetail(obj){
+            let that=this;
+            that.$myHttp.post('pipeMana/savePipeMana',obj).then((res) => {
+                    if (res.success) {
+                        window.vm.$message({
+                            type: 'success',
+                            message: '操作成功',
+                            showClose: true,
+                            duration: 2000,
+                        });
+                        that.show = false;
+                        that.submitSearch(that.params);
+                    } else {
+                        window.vm.$message({
+                            type: 'error',
+                            message: res.msg || '操作失败',
+                            showClose: true,
+                            duration: 2000,
+                        });
+                    }
+            });
+        },
+        submitSearch(e){
+            this.params=e;
+            this.$myHttp.post('pipeMana/getPipeManaList', e).then((res) => {
+                      if (res.success) {
+                          this.showSearch = false;
+                          let arr=res.result;
+                          this.tableData = arr.map(v=>{
+                            let dsfLength=0;
+                            if(v.DSF!=null){
+                               dsfLength=v.DSF.split(",").length
+                            }
+                            let gfxLength=0;
+                            if(v.GFX!=null){
+                                gfxLength=v.GFX.split(",").length
+                            }
+                            let ghgLength=0;
+                            if(v.GHG!=null){
+                               ghgLength=v.GHG.split(",").length
+                            }
+                            return {...v,DSFNum:dsfLength,GFXNum:gfxLength,GHGNum:ghgLength}
+                          })
+                          this.total=this.tableData.length;
+                      } else {
+                          window.vm.$message({
+                              type: 'error',
+                              message: res.msg || '查询失败',
+                              showClose: true,
+                              duration: 2000,
+                          });
+                      }
+            });
+        },
+        search(){
+          this.showSearch=true;
+        },
+        renderheader(h, { column, $index }) {
+            return h('span', {}, [
+                h('span', {}, column.label.split('|')[0]),
+                h('br'),
+                h('span', {}, column.label.split('|')[1])
+            ]);
+        },
+        site(){
+           if(this.multipleSelection.length==0||this.multipleSelection.length>1){
+                    window.vm.$message({
+                        type: 'error',
+                        message:'请选择一个管段',
+                        showClose: true,
+                        duration: 2000,
+                    });
+            }else{
+                let obj=this.multipleSelection[0];
+                this.$myHttp.get('pipe/getStakeList?routeId='+obj.ROUTEID+'&startStake='+obj.STARTSTAKE+'&endStake='+obj.ENDSTAKE).then((res) => {
+                    if (res.success) {
+                        let arr=res.result.map((v)=>{
+                            return {...v,pointname:v.STAKEID,longitude:v.LONGITUDE,latitude:v.LATITUDE,pointid:v.STAKEID};
+                        })
+                        let  temp={
+                              pointList:arr
+                        }
+                        localStorage.setItem('mapInfo',JSON.stringify(temp));
+                        localStorage.setItem('pointFre', 'else');
+                        localStorage.setItem('pointKey',"one");
+                        localStorage.setItem('nowTime',obj.LASTMODIFIED.slice(0,10));
+                        this.mapBool = true;
+                    } else {
+                       window.vm.$message({
+                            type: 'error',
+                            message: '无空间位置',
+                            showClose: true,
+                            duration: 5000,
+                        });
+                        return false;
+                    }
+               });
+            }
+        },
+        closeMap() {
+            this.mapBool = false;
+            localStorage.setItem('mapInfo', null);
+        },
+    },
+    watch: {
+            '$route' (to, from) { //监听路由是否变化
+                if(to.path != from.path){
+                    this.init();//重新加载数据
+                }
+            }
+    },   
+  }
+</script>
+<style scoped>
+.box{width:100%;height:100%;padding:20px 20px;box-sizing: border-box;position: relative;}
+.box>.el-row{width:100%;}
+.box>.el-row:first-child{margin-bottom: 20px;}
+.mapBox {
+     background: rgba(0, 0, 0, 0.6);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    z-index: 99999999;
+}
+ .mapBox .conBox .title .close {
+    position: absolute;
+    height: 30px;
+    line-height: 30px;
+    width: 30px;
+    right: 15px;
+    top: 15px;
+    font-size: 25px;
+    cursor: pointer;
+}
+.mapBox .conBox {
+    height: 90%;
+    width: 90%;
+    margin-top: 2.5%;
+    margin-left: 5%;
+}
+.mapBox .conBox .title {
+    position: relative;
+    height: 60px;
+    line-height: 60px;
+    text-align: center;
+    background: #fff;
+    border-bottom: 1px solid #ccc;
+    color: #000000;
+}
+.mapBox .conBox iframe {
+    height: calc((100% - 60px));
+    width: 100%;
+}
+</style>

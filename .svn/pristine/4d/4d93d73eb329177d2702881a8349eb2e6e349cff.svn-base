@@ -1,0 +1,248 @@
+<template>
+  <div class="addList">
+    <div class='addTable'>
+      <div class='title'>
+        工程施工历史记录
+        <span
+          class="close"
+          @click="cancel"
+        >{{"×"}}</span>
+      </div>
+      <div class="formbox">
+        <!-- <el-table
+            :data="tableData"
+            style="width: 100%"
+             :cell-style="{'text-align':'center'}"
+             :header-cell-style="{background:'#fff','text-align':'center'}"
+            max-height="450"> -->
+       <el-table max-height="600"
+                    :data="tableData.slice((currentPage - 1) * pageSize, currentPage*pageSize)" tooltip-effect="dark" border style="width: 100%"   
+                    :header-cell-style="{background:'#fff','text-align':'center'}" :cell-style="{'text-align':'center'}"
+                    highlight-current-row
+                    ref="multipleTable"
+                    >
+              <el-table-column prop="AREANAME" label="输油部（分公司）"></el-table-column>
+              <el-table-column prop="STATIONNAME" label="站场"></el-table-column>
+              <el-table-column prop="PROJECTNAME" label="工程名称"></el-table-column>
+              <el-table-column prop="POSITION" label="具体位置"></el-table-column>
+              <el-table-column prop="MILEAGEID" label="桩号"></el-table-column>
+              <el-table-column prop="SCALE" label="规模">
+                  <template slot-scope="scope">
+                      <template v-if="scope.row.SCALE==1">
+                          小型
+                      </template>
+                      <template v-else-if="scope.row.SCALE==2">
+                          大型
+                      </template>
+                  </template>
+              </el-table-column>
+              <el-table-column prop="PROJECTTYPECN" label="施工类型"></el-table-column>
+              <el-table-column prop="DESCRIPTION" :label="'第三方工程信息 | 简要描述'" :render-header="renderheader"></el-table-column>
+              <el-table-column prop="COMPANY" label="施工单位名称"></el-table-column>
+              <el-table-column prop="DIRECTOR" label="负责人"></el-table-column>
+              <el-table-column prop="DIRECTORPHONE" label="联系方式"></el-table-column>
+              <el-table-column prop="PROJECTSTATE" label="施工状态">
+                        <template slot-scope="scope">
+                              <template v-if="scope.row.PROJECTSTATE==1">
+                                  正在施工
+                              </template>
+                              <template v-else-if="scope.row.PROJECTSTATE==2">
+                                  未施工
+                              </template>
+                              <template v-else-if="scope.row.PROJECTSTATE==3">
+                                  已完工
+                              </template>
+                              <template v-else>
+                                  停工
+                              </template>
+                        </template>
+              </el-table-column>
+              <el-table-column prop="CONTROLGRADECN" label="标准化布控等级"></el-table-column>
+              <el-table-column prop="EXCAVATIONNUM" label="开挖深坑数量"></el-table-column>
+              <el-table-column prop="TUTELAGE" :label="'是否全时监护 | (24小时)'" :render-header="renderheader">
+                          <template slot-scope="scope">
+                              <template v-if="scope.row.TUTELAGE==1">
+                                  是
+                              </template>
+                              <template v-else>
+                                  否
+                              </template>
+                        </template>
+              </el-table-column>
+              <el-table-column prop="RISK" label="施工风险等级">
+                        <template scope="scope">
+                            <template v-if="scope.row.RISK==3">
+                                <span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#4285f4;"></i>低风险</span>
+                            </template>
+                            <template v-else-if="scope.row.RISK==2">
+                                <span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fbbc05;"></i>中风险</span>
+                            </template>
+                            <template v-else-if="scope.row.RISK==1">
+                                <span><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ea4335;"></i>高风险</span>
+                            </template>
+                            <template v-else>
+                                <span></span>
+                            </template>
+                        </template>
+              </el-table-column>
+              <el-table-column
+                fixed="right"
+                label="操作"
+                width="120">
+                <template slot-scope="scope">
+                    <el-button
+                    @click.native.prevent="detailHistory(scope.$index, tableData)"
+                    type="text"
+                    size="small">
+                    历史记录详情
+                    </el-button>
+                </template>
+              </el-table-column>
+        </el-table>
+      </div>
+      <div class="paginationBox">
+          <el-pagination
+              background
+              @size-change="handleSizeChange"
+              @current-change="handleCurrentChange"
+              :current-page="currentPage"
+              :page-sizes="[10,15,20]"
+              :page-size="pageSize"
+              layout="total, sizes, prev, pager, next, jumper"
+              :total="total">
+              </el-pagination>
+      </div>
+    </div>
+    <dealHistory
+        v-if="delHistoryShow"
+        :ids='ids'
+        @close="closeDetail"
+    >
+    </dealHistory>
+  </div>
+
+</template>
+
+<script>
+import dealHistory from './dealHistory';
+export default {
+  props: ['historyId'],
+  components: {dealHistory},
+  data() {
+    return {
+        tableData:[],
+        currentPage: 1,
+        pageSize: 10,
+        total:0,
+        delHistoryShow:false,
+        ids:'',
+    };
+  },
+  created() {
+    this.getThirdConRecordList();
+  },
+  methods: {
+    getThirdConRecordList(){
+        this.$myHttp.get('construction/getThirdConRecordList?soureId='+this.historyId).then((res) => {
+              if (res.success) {
+                  this.tableData=res.result;
+                  if(this.tableData!=null&&this.tableData!=""){
+                    this.total=this.tableData.length;
+                  }else{
+                      this.tableData=[];
+                  }
+              } else {
+                  window.vm.$message({
+                      type: 'error',
+                      message: res.msg || '查询失败',
+                      showClose: true,
+                      duration: 2000,
+                  });
+              }
+        });
+    },
+   cancel(){
+        this.$emit('closeHistory');
+   },
+    handleSizeChange(val) {
+        this.pageSize=val;//每页多少条
+    },
+    handleCurrentChange(val) {
+        this.currentPage=val;//当前页
+    },
+   detailHistory(index, rows) {
+       this.ids=rows[index].SERIALID;
+       this.delHistoryShow=true;
+   },
+   closeDetail(){
+     this.delHistoryShow=false;
+   },
+    renderheader(h, { column, $index }) {
+        return h('span', {}, [
+            h('span', {}, column.label.split('|')[0]),
+            h('br'),
+            h('span', {}, column.label.split('|')[1])
+        ]);
+    },
+  },
+};
+</script>
+
+<style lang="less" scoped>
+.addList {
+  position: absolute;
+  z-index: 2;
+  left:0;top:0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  .addTable {
+    width:1000px;
+    background: #000000;
+    position: absolute;
+    left: 50%;
+    margin-left: -500px;
+    z-index:3;
+       min-height: 200px;
+    overflow: hidden;
+    padding-bottom: 15px;
+    .title {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      border-bottom: 1px solid #ccc;
+      color: #3baaaf;font-size:16px;
+      .close {
+        position: absolute;
+        height: 30px;
+        line-height: 30px;
+        width: 30px;
+        right: 15px;
+        top: 15px;
+        font-size: 25px;
+        cursor: pointer;
+      }
+    }
+  }
+}
+.formbox {
+  overflow: hidden;
+  padding: 20px 20px 0 20px;
+  box-sizing: border-box;
+  height:auto;
+  .el-form-item {
+    float: left;
+    width: 43%;
+    .el-select {
+      width: 100%;
+    }
+  }
+  .w100 {
+    width: 100%;
+  }
+}
+.lookSpan{color:#ffffff;}
+.paginationBox{padding-top:15px;}
+</style>

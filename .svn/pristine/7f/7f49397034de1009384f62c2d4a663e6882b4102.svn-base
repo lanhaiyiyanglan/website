@@ -1,0 +1,118 @@
+
+.home{
+	height:100%;
+	width:100%;
+  background:url('./images/bodyBg.png') no-repeat;
+	background-size:100% 100%;
+	.home_header{
+		height:3.5rem;
+		width:100%;
+    background:#2a3241;
+		img.icon{
+			float: left;
+		    height: 3rem;
+		    margin-top: 0.25rem;
+		    margin-left: 15px;
+		}
+		.logo{
+			float:left;
+			height:3.5rem;
+			line-height:3.5rem;
+			font-size:26px;
+			color:#fff;
+			font-weight:600;
+			padding:0px 10px;
+		}
+		.firstTree{
+			float:right;
+			height:3.5rem;
+			line-height:3.5rem;
+			font-size:18px;
+			color:#fff;
+			font-weight:normal;
+			padding:0px 20px;
+			.name{
+				float:right;
+				height:3.5rem;
+				line-height:3.5rem;
+				font-size:18px;
+				padding:0px 10px 0px 40px;
+			}
+			.itemTree{
+				float:left;
+				height:100%;
+				width:120px;
+				cursor:pointer;
+				img{
+					vertical-align:middle;
+				}
+			}
+			.itemTreeA{
+				float:left;
+				height:100%;
+				width:120px;
+				color:#4c838b;
+				cursor:pointer;
+				border-bottom:3px solid #26f4ff;
+				img{
+					vertical-align:middle;
+				}
+			}
+		}			
+	}
+	.leftTree{
+		float:left;
+		height:46.5rem;
+		width:140px;
+		overflow-y:auto;
+		background:#252932;
+		.itemTree{
+			float:left;
+			height:80px;
+			line-height:30px;
+			width:140px;
+			cursor:pointer;
+			padding-top: 15px;
+		    text-align: center;
+		    color:#cacdd6;
+			img{
+				height:25px;
+				width:25px;
+			}
+			span{
+				display:inline-block;
+				width:100%;
+				font-size:16px;
+			}
+		}
+		.itemTreeA{
+			float:left;
+			width:140px;
+			padding-top: 15px;
+		    background-color: #141519;
+		    line-height: 30px;
+		    height: 80px;
+		    color: #3BAAAF;
+		    text-align: center;
+		    cursor: pointer;
+		    border-left: 5px solid #2f828a;
+			img{
+				height:25px;
+				width:25px;
+			}
+			span{
+				display:inline-block;
+				width:100%;
+				font-size:16px;
+			}
+		}
+	}
+	.contentBox{
+		float:left;
+		height:46.5rem;
+		width:calc(~"100% - 140px");
+		overflow:hidden;
+		border-top:1px solid #33848a;
+		border-left:1px solid #33848a;
+	}
+}

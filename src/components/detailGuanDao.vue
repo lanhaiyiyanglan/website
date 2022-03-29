@@ -1,0 +1,714 @@
+<template>
+<div  class="addList"  
+    v-loading="loading"
+    element-loading-text="提交中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)">
+    <div class='addTable'>
+      <div class='title'>
+        {{title}}
+        <span
+          class="close"
+          @click="cancel"
+        >{{"×"}}</span>
+      </div>
+      <div class="formbox">
+        <el-form
+          ref="ruleForm"
+          :model="form"
+          label-width="130px"
+          :rules="rules"
+        >
+          <el-form-item label="输油处：" prop="AREAID">
+            <template v-if="flag!=0">
+                <el-select
+                    size="small"
+                    v-model="form.AREAID"
+                    placeholder="请选择输油处"
+                    @change='changePlace'
+                    >
+                    <el-option
+                        v-for='item in placelist'
+                        :key='item.GROUPCODE'
+                        :label="item.GROUPNAME"
+                        :value="item.GROUPCODE"
+                    ></el-option>
+                </el-select>
+            </template>
+            <template v-else>
+               <span class="lookSpan">{{form.AREANAME}}</span>
+            </template>
+          </el-form-item>
+
+          <el-form-item label="输油站：" prop="STATIONID">
+            <template v-if="flag!=0">
+               <el-select
+                  size="small"
+                  v-model="form.STATIONID"
+                  placeholder="请选择输油站"
+                  @change="getRoutes"
+                  >
+                  <el-option
+                      v-for='item in stationlist'
+                      :key='item.GROUPCODE'
+                      :label="item.GROUPNAME"
+                      :value="item.GROUPCODE"
+                  ></el-option>
+            </el-select>
+            </template>
+            <template v-else>
+                 <span class="lookSpan">{{form.STATIONNAME}}</span>
+            </template>
+          </el-form-item>
+          <el-form-item label="线路：" prop="ROUTEID">
+            <template v-if="flag!=0">
+               <el-select
+                    size="small"
+                    v-model="form.ROUTEID"
+                    placeholder="请选择线路"
+                    @change="changeRoute"
+                    >
+                    <el-option
+                        v-for='item in routelist'
+                        :key='item.ROUTEID'
+                        :label="item.ROUTENAME"
+                        :value="item.ROUTEID"
+                    ></el-option>
+                </el-select>
+            </template>
+            <template v-else>
+                 <span class="lookSpan">{{form.ROUTENAME}}</span>
+            </template>
+          </el-form-item>
+          <el-form-item label="管段名称：" class="small" prop="NAME">
+                <template v-if="flag!=0">
+                  <el-input
+                  v-model="form.NAME"
+                  size="small"
+                  placeholder="请输入管段名称"
+                  ></el-input>
+                </template>
+                <template v-else>
+                   <span class="lookSpan">{{form.NAME}}</span>
+                </template>
+          </el-form-item>
+          <el-form-item label="管段类型：" prop="types">
+            <template v-if="flag!=0">
+                <el-select 
+                      size="small"
+                      v-model="types"
+                      placeholder="请选择管段类型"
+                      multiple  
+                      collapse-tags
+                      @change="getSelectDep"
+                >
+                  <!-- <el-checkbox :style="selfstyle" v-model="checkedThing" @change='selectAllThing'>全选</el-checkbox> -->
+                  <el-option v-for="item in typeList" :label="item.CODENAME" :value="item.CODEID" :key="item.CODEID"></el-option>
+                </el-select>
+            </template>
+            <template v-else>
+                <span class="lookSpan">{{form.TYPENAME}}</span>
+            </template>
+          </el-form-item>
+          <el-form-item label="起始桩号：" prop="STARTSTAKE">
+             <template v-if="flag!=0">
+                 <el-select
+                    size="small"
+                    v-model="form.STARTSTAKE"
+                    placeholder="请选择起始桩号"
+                    v-loading='selectloading'
+                    filterable v-el-select-loadmore="loadmore" :filter-method="filterVmModel" @change="clearList" clearable
+                    no-match-text=" "
+                    >
+                    <el-option
+                        v-for='item in takeArr'
+                        :key='item.STAKEID'
+                        :label="item.STAKEID"
+                        :value="item.STAKEID"
+                    ></el-option>
+                </el-select>
+             </template>
+             <template v-else>
+                 <span class="lookSpan">{{form.STARTSTAKE}}</span>
+             </template>
+          </el-form-item>
+          <el-form-item label="终止桩号：" prop="ENDSTAKE">
+             <template v-if="flag!=0">
+                 <el-select
+                    size="small"
+                    v-model="form.ENDSTAKE"
+                    placeholder="请选择终止桩号"
+                    v-loading='selectloading'
+                    filterable v-el-select-loadmore="loadmore2" :filter-method="filterVmModel2"  @change="clearList2" clearable
+                    no-match-text=" "
+                    >
+                    <el-option
+                        v-for='item in takeArr2'
+                        :key='item.STAKEID'
+                        :label="item.STAKEID"
+                        :value="item.STAKEID"
+                    ></el-option>
+                </el-select>
+             </template>
+             <template v-else>
+                  <span class="lookSpan">{{form.ENDSTAKE}}</span>
+             </template>
+          </el-form-item>
+           <el-form-item label="管段长度(km)：" class="small" prop="MILE">
+                <template v-if="flag!=0">
+                    <el-input
+                    v-model="form.MILE"
+                    size="small"
+                    placeholder="请输入管段长度" clearable
+                    ></el-input>
+                </template>
+                <template v-else>
+                  <span class="lookSpan">{{form.MILE}} KM</span>
+                </template>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template v-if="flag">
+          <div class='confirm' >
+            <span class="add" @click="submit('ruleForm')">确认</span>
+            <span class="close" @click="cancel">取消</span>
+          </div>
+      </template>
+    </div>
+</div>
+</template>
+
+<script>
+export default {
+  props: ['title','flag','formobj',"loading"],
+  directives: {
+    // 计算是否滚动到最下面
+    'el-select-loadmore': {
+      bind (el, binding) {
+        const SELECTWRAP_DOM = el.querySelector('.el-select-dropdown .el-select-dropdown__wrap');
+        SELECTWRAP_DOM.addEventListener('scroll', function () {
+          const condition = Math.round(this.scrollHeight - this.scrollTop) <= this.clientHeight;
+          if (condition) {
+            binding.value();
+          }
+        });
+      }
+    }
+  },
+  data() {
+   const types = (rule, value, callback) => {
+      if (this.types.length < 1) {
+        callback(new Error("请选择管段类型"));
+      } else {
+        callback();
+      }
+    };
+    return {
+      form:{
+        "MODIFIEDBY":"",
+        "TYPENAME":"",
+        "AREAID":"",
+        "ROUTEID":"",
+        "ENDSTAKE":"",
+        "STATIONID":"",
+        "STARTSTAKE":"",
+        "SERIALID":"",
+        "NAME":"",
+        "TYPES":"",
+        "MILE":"",
+        "ROUTENAME":"",
+        "LASTMODIFIED":"",
+        "STATIONNAME":"",
+        "AREANAME":""
+      },
+      placelist:[],
+      stationlist:[],
+      routelist:[],
+      typeList:[],
+      takeList:[],
+		  // checkedThing: false,
+      department: [],
+      selfstyle: {
+          textAlign: "right",
+          width: "100%",
+          paddingRight: "10px",
+      },
+      types:[],
+      rules: {
+        AREAID:[{required: true, message: '请选择输油处', trigger: 'change' }],
+        STATIONID:[{required: true, message: '请选择输油站', trigger: 'change' }],
+        ROUTEID:[{required: true, message: '请选择线路', trigger: 'change'}],
+        NAME:[{required: true, message: '请输入管段名称', trigger: 'blur'}],
+        types:[
+          { required: true, trigger: "change",validator:types }
+        ],
+        STARTSTAKE:[{ required: true, message: '请选择起始桩号', trigger: 'change' }],
+        ENDSTAKE:[{ required: true, message: '请选择终止桩号', trigger: 'change' }],
+        MILE:[
+          { required: true,trigger: 'blur', message:'请输入管段长度'},
+          { pattern: /(^[1-9]([0-9]+)?(\.[0-9]{1,2})?$)|(^(0){1}$)|(^[0-9]\.[0-9]([0-9])?$)/, message: '请输入正确格式,可保留两位小数' }
+        ]
+      },
+       selectloading: false,
+       //loading:false,
+      takeArr: [],
+      takeArr2: [],
+      filterText: '', // 输入的筛选项,
+      filterText2: '',
+      query: {// 分页参数
+        page: 1,
+        limit: 10
+      },
+      query2: {// 分页参数
+        page: 1,
+        limit: 10
+      },
+    };
+  },
+  created() {
+      if(this.title=="修改管段信息"||this.title=="查看管段信息"){
+        this.form=Object.assign({},this.formobj);
+        this.types=this.form.TYPES.split(",");
+        this.getSelectDep(this.types);
+      }
+    this.getAllArea();//获取输油处
+    this.changePlace(this.form.AREAID);//根据输油处获取输油站
+    this.getRoutes(this.form.STATIONID);//根据输油站获取线路
+    this.changeRoute(this.form.ROUTEID);//根据线路获取启止桩号
+    this.getTypeList();//获取管道类型
+   },
+  methods: {
+    //获取输油处
+   getAllArea(){
+      let url="";
+      if(this.flag==0){//查看有全部字段
+        url='gpsGroups/getAllArea?userId=' +this.$Cookie.get('userId');
+      }else{//修改新增无全部字段
+        url='pipe/getAreaList?userId=' +this.$Cookie.get('userId');
+      }
+      this.$myHttp.get(url).then((res) => {
+          this.placelist = res.result;
+      });
+   },
+    //获取输油站
+   changePlace(val){
+        let url="";
+        if(this.flag==0){
+          url='gpsGroups/getStationsByArea?userId=' +this.$Cookie.get('userId') +'&groupCode=' +val;
+        }else{
+          url='pipe/getStationList?userId=' +this.$Cookie.get('userId') +'&groupCode=' +val;
+        }
+        if(this.title=="新增管段信息"){
+          this.form.STATIONID="";
+          this.form.ROUTEID="";
+          this.form.ROUTEID="";
+          this.routelist=[];
+          this.takeList=[];
+          this.takeArr=[];
+          this.takeArr2=[];
+          this.form.ENDSTAKE="";
+          this.form.STARTSTAKE="";
+        }
+        this.$myHttp.get(url).then((res) => {
+          this.stationlist = res.result;
+        });
+   },
+   //启止桩号
+   async changeRoute(value){
+     await this.getAll(value);
+     this.loadmore(true);
+     this.loadmore2(true);
+   },
+   getAll(value){
+     return new Promise(resolve=>{
+            this.selectloading = true;
+            this.takeList=[];
+            this.$myHttp.get('pipe/getStakeListByRouteId?routeId=' + value).then((res) => {
+            this.takeList = this.deteleObject(res.result);
+            if(this.title=="新增管段信息"){
+              this.form.ENDSTAKE="";
+              this.form.STARTSTAKE="";
+            }
+            this.selectloading = false;
+              resolve();
+            });
+        });
+  },
+  deteleObject(obj) {
+    var uniques = [];
+    var stringify = {};
+    for (var i = 0; i < obj.length; i++) {
+        var keys = Object.keys(obj[i]);
+        keys.sort(function(a, b) {
+            return (Number(a) - Number(b));
+        });
+        var str = '';
+        for (var j = 0; j < keys.length; j++) {
+            str += JSON.stringify(keys[j]);
+            str += JSON.stringify(obj[i][keys[j]]);
+        }
+        if (!stringify.hasOwnProperty(str)) {
+            uniques.push(obj[i]);
+            stringify[str] = true;
+        }
+    }
+    uniques = uniques;
+    return uniques;
+ },
+  // 分页方法
+    loadmore (firstTag) {
+      if (!this.filterText) {
+        if (!firstTag) {
+          this.query.page++
+        }
+        // 分页开始坐标
+        const begin = this.query.limit * (this.query.page - 1)
+        // 分页结束坐标
+        const end = begin + this.query.limit
+        // 这里使用slice 进行分页
+        this.takeArr.push(...this.takeList.slice(begin, end))
+
+      }
+    },
+    loadmore2(firstTag) {
+      if (!this.filterText2) {
+        if (!firstTag) {
+          this.query2.page++
+        }
+        // 分页开始坐标
+        const begin = this.query2.limit * (this.query2.page - 1)
+        // 分页结束坐标
+        const end = begin + this.query2.limit
+        // 这里使用slice 进行分页
+        this.takeArr2.push(...this.takeList.slice(begin, end))
+
+      }
+    },
+    filterVmModel (value) {
+      this.form.STARTSTAKE= value
+      this.filterText = value
+      // 筛选数据
+      if (value) {
+        this.takeArr = this.takeList.filter(item => {
+          return item.STAKEID && item.STAKEID.indexOf(value) !== -1
+        })
+      } else {
+        // 直接赋值会连续触发 loadmore 分页事件
+        this.takeArr = []
+        this.$nextTick(() => {
+          this.takeArr = this.takeList.slice(0, this.query.limit * this.query.page)
+        })
+      }
+
+    },
+    filterVmModel2(value) {
+      this.form.ENDSTAKE= value;
+      this.filterText2 = value;
+      // 筛选数据
+      if (value) {
+        this.takeArr2 = this.takeList.filter(item => {
+          return item.STAKEID && item.STAKEID.indexOf(value) !== -1
+        })
+      } else {
+        // 直接赋值会连续触发 loadmore 分页事件
+        this.takeArr2 = []
+        this.$nextTick(() => {
+          this.takeArr2 = this.takeList.slice(0, this.query2.limit * this.query2.page)
+        })
+      }
+
+    },
+    clearList (val) {
+      // 移除掉teacher文本框的值时触发方法
+      if (!val) {
+        this.repeatCode()
+      }
+    },
+    clearList2 (val) {
+      // 移除掉teacher文本框的值时触发方法
+      if (!val) {
+        this.repeatCode2()
+      }
+    },
+    // 重复的代码
+    repeatCode () {
+      this.form.STARTSTAKE = '';
+      this.filterText = '';
+      this.takeArr = [];
+      this.query = {
+        page: 1,
+        limit: 10
+      }
+      this.loadmore(true)
+    },
+    repeatCode2() {
+      this.form.ENDSTAKE = '';
+      this.filterText2 = '';
+      this.takeArr2 = [];
+      this.query2 = {
+        page: 1,
+        limit: 10
+      }
+      this.loadmore2(true)
+    },
+   //获取线路
+   getRoutes(val){
+        if(this.title=="新增管段信息"){
+            this.form.ROUTEID="";
+            this.takeList=[];
+            this.takeArr=[];
+            this.takeArr2=[];
+            this.form.ENDSTAKE="";
+            this.form.STARTSTAKE="";
+        }
+       this.$myHttp.get('pointManage/getRoutesByStationId?stationId=' + val).then((res) => {
+           this.routelist=res.result;
+       });
+   },
+   //获取管道类型
+   getTypeList(){
+       var type="gps_pipe_type";
+       this.$myHttp.get('gpsGroups/getApCodomainsByCode?code=' + type).then((res) => {
+          this.typeList = res.result;
+          if(this.typeList.length==this.types.length){
+            this.checkedThing = true
+          } else {
+            this.checkedThing = false
+          }
+       });
+   },
+   cancel(){
+        this.$emit('close');
+   },
+   submit(formName) {
+     this.$refs[formName].validate((valid) => {
+        if (valid) {
+              if(this.title=="新增管段信息"){
+                  this.form.SERIALID=parseInt(Math.random()*100+1);
+              }
+              let obj={
+                "gpsPipe":{
+                    "areaid":this.form.AREAID,
+                    "endstake":this.form.ENDSTAKE,
+                    "mile":this.form.MILE,
+                    "name":this.form.NAME,
+                    "routeid":this.form.ROUTEID,
+                    "serialid":this.form.SERIALID,
+                    "startstake":this.form.STARTSTAKE,
+                    "stationid":this.form.STATIONID,
+                    "types":this.types.toString()
+                },
+                userId: this.$Cookie.get('userId'),
+              }
+              this.$emit('sub',obj);
+        }
+     })
+   },
+   getSelectDep(types) {
+      //  if (types.length === this.typeList.length) {
+      //    this.checkedThing = true
+      //  } else {
+      //    this.checkedThing = false
+      //  }
+       this.types=types;
+    },
+    // selectAllThing() {
+    //   this.types=[];
+    //   if (this.checkedThing) {
+    //     this.typeList.map((item) => {
+    //       this.types.push(item.CODEID);
+    //     })
+    //   } else {
+    //       this.types=[];
+    //   }
+    // },
+  },
+};
+</script>
+
+<style lang="less" scoped>
+.addList {
+  position: absolute;
+  z-index: 2;
+  left:0;top:0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  .addTable {
+    width: 80%;
+    margin-left: 10%;
+    height: 38rem;
+    background: #000000;
+    .title {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      border-bottom: 1px solid #ccc;
+      color: #3baaaf;font-size:16px;
+      .close {
+        position: absolute;
+        height: 30px;
+        line-height: 30px;
+        width: 30px;
+        right: 15px;
+        top: 15px;
+        font-size: 25px;
+        cursor: pointer;
+      }
+    }
+    .tr {
+      height: 45px;
+      padding: 5px;
+      .lable {
+        float: left;
+        height: 30px;
+        line-height: 30px;
+        padding: 0px 15px;
+      }
+      .el-select {
+        float: left;
+        height: 30px;
+        line-height: 30px;
+        margin-right: 30px;
+      }
+      .el-select input.el-input__inner {
+        height: 30px !important;
+        line-height: 30px !important;
+        background: #1c1e2c;
+      }
+      .el-input__inner {
+        background: #1c1e2c;
+        height: 30px;
+        line-height: 30px;
+      }
+    }
+    table {
+      display: inline-block;
+      width: 100%;
+      height: calc(~'(100% - 150px)');
+      overflow-y: auto;
+      border-collapse: collapse;
+      thead {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          th {
+            float: left;
+            padding: 0;
+            margin: 0;
+            height: 2rem;
+            line-height: 2rem;
+            border: 1px solid #1e727e;
+            font-size: 18px;
+          }
+        }
+      }
+      tbody {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          td {
+            float: left;
+            padding: 0;
+            margin: 0;
+            height: 1.6rem;
+            line-height: 1.6rem;
+            border: 1px solid #1e727e;
+            text-align: center;
+            overflow: hidden; /*超出部分隐藏*/
+            white-space: nowrap; /*不换行*/
+            text-overflow: ellipsis; /*超出部分文字以...显示*/
+          }
+        }
+      }
+    }
+    .confirm {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      color: #3baaaf;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .close {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+        margin-left: 20px;
+      }
+      .add {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+      }
+    }
+  }
+}
+.formbox {
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+  .el-form-item {
+    float: left;
+    width: 43%;
+    .el-select {
+      width: 100%;
+    }
+    .addBtn {
+      display: inline-block;
+      text-align: center;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      background: #777;
+      color: #fff;
+      font-size: 20px;
+      margin-left: 20px;
+      cursor: pointer;
+    }
+
+    .level1 {
+      // padding-left: 30px;
+      min-height: 30px;
+      span {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        padding: 0 15px;
+        border-radius: 15px;
+        border: 1px solid #ccc;
+        min-width: 50px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+        cursor: pointer;
+      }
+    }
+  }
+  .w100 {
+    width: 100%;
+  }
+  .lookSpan{color:#fff;}
+}
+</style>

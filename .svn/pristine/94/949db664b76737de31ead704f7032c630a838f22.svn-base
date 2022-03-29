@@ -1,0 +1,206 @@
+<template>
+    <div class="box">
+        <el-row>
+            <el-button type="primary" icon="el-icon-plus" @click="operation('新增段长信息')">新增</el-button>
+            <el-button type="primary" icon="el-icon-edit" @click="operation('修改段长信息')">修改</el-button>
+            <el-button type="primary" icon="el-icon-delete" @click="delet()">删除</el-button>
+            <el-button type="primary" icon="el-icon-search" @click="search()">查询</el-button>
+            <el-button type="primary" icon="el-icon-map-location">定位</el-button>
+            <el-button type="primary" icon="el-icon-view" @click="operation('查看段长信息')">查看</el-button>
+        </el-row>
+        <el-row>
+            <el-table :data="tableData" height="80vh" border style="width: 100%" tooltip-effect="dark" @selection-change="handleSelectionChange">
+                <el-table-column type="selection" width="55"></el-table-column>
+                <el-table-column prop="AREANAME" label="输油处"></el-table-column>
+                <el-table-column prop="STATIONNAME" label="输油站"></el-table-column>
+                <el-table-column prop="ROUTENAME" label="管段名称"></el-table-column>
+                <el-table-column prop="TYPENAME" label="管段类型"></el-table-column>
+                <el-table-column prop="STARTSTAKE" label="起点桩号"></el-table-column>
+                <el-table-column prop="ENDSTAKE" label="终点桩号"></el-table-column>
+                <el-table-column prop="MILE" label="管段长度"></el-table-column>
+                <el-table-column prop="DSFNum" label="第三方施工点数"></el-table-column>
+                <el-table-column prop="GFXNum" label="高风险段数"></el-table-column>
+                <el-table-column prop="GHGNum" label="高后果区数"></el-table-column>
+                <el-table-column prop="PERSONNAME" label="段长姓名"></el-table-column>
+                <el-table-column prop="PHONE" label="联系方式"></el-table-column>
+                <el-table-column prop="NOTE" label="备注"></el-table-column>
+            </el-table>
+        </el-row>
+         <!-- 新增编辑弹框 -->
+        <detail-duan-chang
+            v-if='show'
+            :title='title'
+            :flag="flag"
+            @close='closeDetail'
+            :formobj='formobj'
+            @sub='submitDetail'
+        ></detail-duan-chang>
+        <search
+            v-if='showSearch'
+            :title="searchTitle"
+            :isGd="0"
+            :formobj='formobj'
+            @close='closeSearch'
+            @sub2='submitSearch'
+         ></search>
+    </div>
+</template>
+<script>
+import detailDuanChang from '../../components/detailDuanChang.vue';
+import Search from '../../components/search.vue';
+  export default {
+    components: {detailDuanChang, Search },
+    data() {
+      return {
+        tableData: [],
+        multipleSelection:[],
+        title:"新增管段信息",
+        show:false,
+        formobj: {},
+        flag:1,
+        showSearch:false,
+        searchTitle:"查询段长",
+        params:{},
+        obj:{
+          "areaId":"",
+          "personName":"",
+          "pipeName":"",
+          "pipeType":0,
+          "stationId":"",
+          "userId":sessionStorage.getItem('userId')
+        }
+      }
+    },
+    mounted() {
+       this.submitSearch(this.obj);
+    },
+   methods:{
+        handleSelectionChange(val) {
+          this.multipleSelection = val;
+        },
+        operation(title){
+            if(title=="修改段长信息"||title=="查看段长信息"){
+                if(this.multipleSelection.length==0||this.multipleSelection.length>1){
+                     window.vm.$message({
+                            type: 'error',
+                            message:'请选择一个管段',
+                            showClose: true,
+                            duration: 2000,
+                     });
+                }else{
+                    this.formobj=this.multipleSelection[0];
+                    this.show=true;
+                    this.title=title;
+                }
+            }else{//新增
+                    this.formobj={};
+                    this.show=true;
+                    this.title=title;
+            }
+            if(title=="查看段长信息"){
+                this.flag=0;
+            }else{
+                this.flag=1;
+            }
+        },
+        //关闭弹框组件
+        closeDetail() {
+          this.show=false;
+        },
+        closeSearch(){
+            this.showSearch=false;
+        },
+         //删除段长
+        delet(){
+           if(this.multipleSelection.length==0||this.multipleSelection.length>1){
+                window.vm.$message({
+                    type: 'error',
+                    message:'请选择管段',
+                    showClose: true,
+                    duration: 2000,
+                });
+           }else{
+                let id=this.multipleSelection[0].SERIALID;
+                window.vm.$confirm('确定是否删除', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                       this.$myHttp.get('pipeMana/deletePipeMana?userId='+sessionStorage.getItem('userId') +'&id=' +id).then((res) => {
+                               if (res.success) {
+                                    window.vm.$message({
+                                        type: 'success',
+                                        message: res.msg,
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                    this.tableData.forEach((v, i) => {
+                                        if(this.multipleSelection[0].SERIALID == v.SERIALID){
+                                            this.tableData.splice(i, 1);
+                                        }
+                                    })
+                                } else {
+                                    window.vm.$message({
+                                        type: 'error',
+                                        message: res.msg || '操作失败',
+                                        showClose: true,
+                                        duration: 2000,
+                                    });
+                                }
+                       });
+                })
+           }
+        },
+        //新增编辑段长
+        submitDetail(obj){
+            let that=this;
+            that.$myHttp.post('pipeMana/savePipeMana',obj).then((res) => {
+                    if (res.success) {
+                        window.vm.$message({
+                            type: 'success',
+                            message: '操作成功',
+                            showClose: true,
+                            duration: 2000,
+                        });
+                        that.show = false;
+                        that.submitSearch(that.params);
+                    } else {
+                        window.vm.$message({
+                            type: 'error',
+                            message: res.msg || '操作失败',
+                            showClose: true,
+                            duration: 2000,
+                        });
+                    }
+            });
+        },
+        submitSearch(e){
+            this.params=e;
+            this.$myHttp.post('pipeMana/getPipeManaList', e).then((res) => {
+                      if (res.success) {
+                          this.showSearch = false;
+                          let arr=res.result;
+                          this.tableData = arr.map(v=>{
+                            return {...v,DSFNum:v.DSF.split(",").length,GFXNum:v.GFX.split(",").length,GHGNum:v.GHG.split(",").length}
+                          })
+                      } else {
+                          window.vm.$message({
+                              type: 'error',
+                              message: res.msg || '查询失败',
+                              showClose: true,
+                              duration: 2000,
+                          });
+                      }
+            });
+        },
+        search(){
+          this.showSearch=true;
+        }
+    }
+  }
+</script>
+<style scoped>
+.box{width:100%;height:100%;padding:2% 2%;box-sizing: border-box;position: relative;}
+.box>.el-row{width:100%;}
+.box>.el-row:first-child{margin-bottom: 20px;}
+</style>

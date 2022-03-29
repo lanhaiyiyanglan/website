@@ -1,0 +1,4449 @@
+/**
+ *<div class="tr">
+ *   <span class='lable'>统计模式：</span>
+ *   <el-select v-model="valueType" placeholder="请选择">
+ *       <el-option
+ *         v-for="item in optionsType"
+ *         :key="item.value"
+ *         :label="item.label"
+ *         :value="item.value">
+ *       </el-option>
+ *   </el-select>
+ *</div>
+ */
+<style lang="less">
+@import 'task.less';
+</style>
+<template>
+  <div
+    class="task"
+    v-loading="loading"
+    element-loading-text="拼命加载中"
+    element-loading-spinner="el-icon-loading"
+    element-loading-background="rgba(0, 0, 0, 0.8)"
+  >
+    <div class="btnBox">
+      <span
+        @click="searchSet"
+        class="optionsBtn"
+      >统计设置</span>
+      <span
+        @click="exportToExcel"
+        class="exportBtn"
+      >导出Excel</span>
+      <span class="selectDay">第几日：</span>
+      <el-select
+        v-model="valueDay"
+        placeholder="请选择"
+      >
+        <el-option
+          v-for="item in optionsDay"
+          :key="item.key"
+          :label="item.name"
+          :value="item.key"
+        >
+        </el-option>
+      </el-select>
+      <span
+        @click="goMap()"
+        class="exportBtn"
+      >查看空间位置</span>
+    </div>
+    <div
+      v-if="tableLevel!='1'"
+      class='goBack'
+      @click="goBack"
+    >返回</div>
+    <div v-if='tableType=="all"'>
+      <div
+        v-if="tableLevel=='1'"
+        class="tableBox"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+        
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="7"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >GPS管道巡线承揽人巡线任务及完成情况统计表</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th :style="{width:'15%'}">任务分类</th>
+              <th :style="{width:'10%'}">人数</th>
+              <th :style="{width:'15%'}">任务数</th>
+              <th :style="{width:'15%'}">必经点数</th>
+              <th :style="{width:'15%'}">应巡点次</th>
+              <th :style="{width:'15%'}">完成点次</th>
+              <th :style="{width:'15%'}">完成率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- <div
+              class="nodata"
+              v-if='tableList1&&tableList1.length==0'
+            >未查询到数据...</div> -->
+            <tr
+              v-for="(value,key) in tableList1"
+              :key="key"
+            >
+              <td
+                @click="drillAll(value.groupCode)"
+                :style="{width:'15%',cursor:'pointer'}"
+              >{{value.groupName}}</td>
+              <td :style="{width:'10%'}">{{value.personCount}}</td>
+              <td :style="{width:'15%'}">{{value.taskCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPointCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPassCount}}</td>
+              <td :style="{width:'15%'}">{{value.postBackCount ? value.postBackCount:'0'}}</td>
+              <td :style="{width:'15%'}">{{value.scale}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        v-if="tableLevel=='2'"
+        class="tableBox"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="7"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{outDesc+'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th :style="{width:'15%'}">任务分类</th>
+              <th :style="{width:'10%'}">人数</th>
+              <th :style="{width:'15%'}">任务数</th>
+              <th :style="{width:'15%'}">必经点数</th>
+              <th :style="{width:'15%'}">应巡点次</th>
+              <th :style="{width:'15%'}">完成点次</th>
+              <th :style="{width:'15%'}">完成率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- <div
+              class="nodata"
+              v-if='tableList2&&tableList2.length==0'
+            >未查询到数据...</div> -->
+            <tr
+              v-for="(value,key) in tableList2"
+              :key="key"
+            >
+              <td
+                @click="drillAll(value.groupCode)"
+                :style="{width:'15%',cursor:'pointer'}"
+              >{{value.groupName}}</td>
+              <td :style="{width:'10%'}">{{value.personCount}}</td>
+              <td :style="{width:'15%'}">{{value.taskCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPointCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPassCount}}</td>
+              <td :style="{width:'15%'}">{{value.postBackCount ? value.postBackCount:'0'}}</td>
+              <td :style="{width:'15%'}">{{value.scale}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        v-if="tableLevel=='3'"
+        class="tableBox"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+          class="headtop"
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="7"
+                class='tableName'
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='detailName'
+              >
+                {{filedDesc+'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='cycle'
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th :style="{width:'10%'}">人员</th>
+              <th :style="{width:'10%'}">人员编码</th>
+              <th :style="{width:'30%'}">任务名称</th>
+              <th :style="{width:'10%'}">必经点数</th>
+              <th :style="{width:'15%'}">应巡点次</th>
+              <th :style="{width:'15%'}">完成点次</th>
+              <th :style="{width:'10%'}">完成率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- <div
+              class="nodata"
+              v-if='tableList3&&tableList3.length==0'
+            >未查询到数据...</div> -->
+            <tr
+              v-for="(value,key) in tableList3"
+              :key="key"
+            >
+              <td
+                :style="{width:'10%',cursor:'pointer'}"
+                @click="drillAll(value.groupCode,value.groupName)"
+              >{{value.groupName}}</td>
+              <td :style="{width:'10%'}">{{value.groupCode}}</td>
+              <td :style="{width:'30%'}">{{value.taskName}}</td>
+              <td :style="{width:'10%'}">{{value.mustPointCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPassCount}}</td>
+              <td :style="{width:'15%'}">{{value.postBackCount ? value.postBackCount:'0'}}</td>
+              <td :style="{width:'10%'}">{{value.scale}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        v-if="tableLevel=='4'&&valueFre!='4'"
+        class="tableBoxP"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+          class="headtop"
+        >
+          <thead class="tabthead">
+            <tr>
+              <th
+                colspan="33"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{filedDesc + staffDesc + 'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th  style="width:4rem">任务名称</th>
+              <th style="width:7rem">必经点名称</th>
+              <th>&nbsp;&nbsp;1</th>
+              <th>&nbsp;&nbsp;2</th>
+              <th>&nbsp;&nbsp;3</th>
+              <th>&nbsp;&nbsp;4</th>
+              <th>&nbsp;&nbsp;5</th>
+              <th>&nbsp;&nbsp;6</th>
+              <th>&nbsp;&nbsp;7</th>
+              <th>&nbsp;&nbsp;8</th>
+              <th>&nbsp;&nbsp;9</th>
+              <th>10</th>
+              <th>11</th>
+              <th>12</th>
+              <th>13</th>
+              <th>14</th>
+              <th>15</th>
+              <th>16</th>
+              <th>17</th>
+              <th>18</th>
+              <th>19</th>
+              <th>20</th>
+              <th>21</th>
+              <th>22</th>
+              <th>23</th>
+              <th>24</th>
+              <th>25</th>
+              <th>26</th>
+              <th>27</th>
+              <th>28</th>
+              <th>29</th>
+              <th>30</th>
+              <th>31</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- <div
+              class="nodata"
+              v-if='tableList4&&tableList4.length==0'
+            >未查询到数据...</div> -->
+            <template v-for="(value,key) in tableList4">
+              <tr
+                :key="key"
+                v-if="key+1!=tableList4.length"
+              >
+                <td style="width:4rem">{{value.taskName}}</td>
+                <td style="width:7rem">
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.pointname}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.one | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.two?value1.two:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.three?value1.three:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.four?value1.four:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.five?value1.five:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.six?value1.six:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.seven?value1.seven:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eight?value1.eight:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.nine?value1.nine:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.ten?value1.ten:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eleven?value1.eleven:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twelve?value1.twelve:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirteen?value1.thirteen:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.fourteen?value1.fourteen:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.fifteen?value1.fifteen:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.sixteen?value1.sixteen:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.seventeen?value1.seventeen:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eighteen?value1.eighteen:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.nineteen?value1.nineteen:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty?value1.twenty:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_one?value1.twenty_one:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_two?value1.twenty_two:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_three?value1.twenty_three:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_four?value1.twenty_four:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_five?value1.twenty_five:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_six?value1.twenty_six:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_seven?value1.twenty_seven:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_eight?value1.twenty_eight:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_nine?value1.twenty_nine:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirty?value1.thirty:'&nbsp;'}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirty_one?value1.thirty_one:'&nbsp;'}}
+                  </div>
+                </td>
+              </tr>
+              <tr
+                :key="key"
+                v-if="key+1==tableList4.length"
+              >
+                <td style="width:4rem">{{value.taskName}}</td>
+                <td style="width:7rem">
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.pointname}}
+                  </div>
+                </td>
+                <template v-for="item in indexArr">
+                  <td :colspan="colspanNum">
+                    <div
+                      v-for="(value1,key1) in (value.pointList)"
+                      :key="key1"
+                      class="twoHo"
+                    >
+                      {{value1[item]}}<br>
+                    </div>
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="33">注：当天到达该必经点位置的，打“√”，没有到达的不做标记，新增点打点无效的，打“-”。“离职”以符号“○”表示，故障以符号“□”表示。</td>
+            </tr>
+            <tr>
+              <td colspan="16">巡线工签字：</td>
+              <td colspan="17">考核员签字：</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div
+        v-if="tableLevel=='4'&&valueFre=='4'"
+        class="tableBoxP"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="33"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{filedDesc + staffDesc + 'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th>任务名称</th>
+              <th>必经点名称</th>
+              <th>时段</th>
+              <th>1</th>
+              <th>2</th>
+              <th>3</th>
+              <th>4</th>
+              <th>5</th>
+              <th>6</th>
+              <th>7</th>
+              <th>8</th>
+              <th>9</th>
+              <th>10</th>
+              <th>11</th>
+              <th>12</th>
+              <th>13</th>
+              <th>14</th>
+              <th>15</th>
+              <th>16</th>
+              <th>17</th>
+              <th>18</th>
+              <th>19</th>
+              <th>20</th>
+              <th>21</th>
+              <th>22</th>
+              <th>23</th>
+              <th>24</th>
+              <th>25</th>
+              <th>26</th>
+              <th>27</th>
+              <th>28</th>
+              <th>29</th>
+              <th>30</th>
+              <th>31</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in tableList4"
+              :key="key"
+            >
+              <td>{{value.subsectionName}}</td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoHT"
+                  :key='key2'
+                >{{value2.pointName}}</div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>上午</div>
+                  <div>下午</div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>{{value2.AM.one}}</div>
+                  <div>{{value2.PM.one}}</div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.two}}
+                  </div>
+                  <div>
+                    {{value2.PM.two}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.three}}
+                  </div>
+                  <div>
+                    {{value2.PM.three}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.four}}
+                  </div>
+                  <div>
+                    {{value2.PM.four}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.five}}
+                  </div>
+                  <div>
+                    {{value2.PM.five}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.six}}
+                  </div>
+                  <div>
+                    {{value2.PM.six}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.seven}}
+                  </div>
+                  <div>
+                    {{value2.PM.seven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eight}}
+                  </div>
+                  <div>
+                    {{value2.PM.eight}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.nine}}
+                  </div>
+                  <div>
+                    {{value2.PM.nine}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.ten}}
+                  </div>
+                  <div>
+                    {{value2.PM.ten}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eleven}}
+                  </div>
+                  <div>
+                    {{value2.PM.eleven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twelve}}
+                  </div>
+                  <div>
+                    {{value2.PM.twelve}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.fourteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.fourteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.fifteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.fifteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.sixteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.sixteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.seventeen}}
+                  </div>
+                  <div>
+                    {{value2.PM.seventeen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eighteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.eighteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.nineteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.nineteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_one}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_one}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_two}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_two}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_three}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_three}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_four}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_four}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_five}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_five}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_six}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_six}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_seven}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_seven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_eight}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_eight}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_nine}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_nine}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirty}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirty}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirty_one}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirty_one}}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="33">注：当天到达该必经点位置的，打“√”，没有到达的不做标记，新增点打点无效的，打“-”。“离职”以符号“○”表示，故障以符号“□”表示。</td>
+            </tr>
+            <tr>
+              <td colspan="16">巡线工签字：</td>
+              <td colspan="17">考核员签字：</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div v-if='tableType=="person"'>
+      <div
+        class="tableBoxP"
+        v-if="valueFre!='4'"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+          class="headtop"
+          
+        >
+          <thead class="tabthead">
+            <tr>
+              <th
+                colspan="33"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{filedDesc + staffDesc + 'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th style="width:4rem">任务名称</th>
+              <th style="width:7rem">必经点名称</th>
+              <th>&nbsp;&nbsp;1</th>
+              <th>&nbsp;&nbsp;2</th>
+              <th>&nbsp;&nbsp;3</th>
+              <th>&nbsp;&nbsp;4</th>
+              <th>&nbsp;&nbsp;5</th>
+              <th>&nbsp;&nbsp;6</th>
+              <th>&nbsp;&nbsp;7</th>
+              <th>&nbsp;&nbsp;8</th>
+              <th>&nbsp;&nbsp;9</th>
+              <th>10</th>
+              <th>11</th>
+              <th>12</th>
+              <th>13</th>
+              <th>14</th>
+              <th>15</th>
+              <th>16</th>
+              <th>17</th>
+              <th>18</th>
+              <th>19</th>
+              <th>20</th>
+              <th>21</th>
+              <th>22</th>
+              <th>23</th>
+              <th>24</th>
+              <th>25</th>
+              <th>26</th>
+              <th>27</th>
+              <th>28</th>
+              <th>29</th>
+              <th>30</th>
+              <th>31</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(value,key) in tableList1">
+              <tr
+                :key="key"
+                v-if="colspanNum&&key+1!=tableList1.length"
+              >
+                <td style="width:4rem">{{value.taskName}}</td>
+                <td style="width:7rem">
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.pointname}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.one | getnbsp}}<br>
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.two | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.three | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.four | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.five | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.six | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.seven | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eight | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.nine | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.ten | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eleven | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twelve | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.fourteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.fifteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.sixteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.seventeen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eighteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.nineteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_one | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_two | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_three | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_four | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_five | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_six | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_seven | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_eight | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_nine | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirty}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirty_one | getnbsp}}
+                  </div>
+                </td>
+              </tr>
+              <tr
+                :key="key"
+                v-if="key+1==tableList1.length"
+              >
+                <td style="width:4rem">{{value.taskName}}</td>
+                <td style="width:7rem">
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.pointname}}
+                  </div>
+                </td>
+                <template v-for="item in indexArr">
+                  <td :colspan="colspanNum">
+                    <div
+                      v-for="(value1,key1) in (value.pointList)"
+                      :key="key1"
+                      class="twoHo"
+                    >
+                      {{value1[item]}}<br>
+                    </div>
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="33">注：当天到达该必经点位置的，打“√”，没有到达的不做标记，新增点打点无效的，打“-”。“离职”以符号“○”表示，故障以符号“□”表示。</td>
+            </tr>
+            <tr>
+              <td colspan="16">巡线工签字：</td>
+              <td colspan="17">考核员签字：</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div
+        class="tableBoxP"
+        v-if="valueFre=='4'"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="33"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{filedDesc + staffDesc + 'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th>任务名称</th>
+              <th>必经点名称</th>
+              <th>时段</th>
+              <th>1</th>
+              <th>2</th>
+              <th>3</th>
+              <th>4</th>
+              <th>5</th>
+              <th>6</th>
+              <th>7</th>
+              <th>8</th>
+              <th>9</th>
+              <th>10</th>
+              <th>11</th>
+              <th>12</th>
+              <th>13</th>
+              <th>14</th>
+              <th>15</th>
+              <th>16</th>
+              <th>17</th>
+              <th>18</th>
+              <th>19</th>
+              <th>20</th>
+              <th>21</th>
+              <th>22</th>
+              <th>23</th>
+              <th>24</th>
+              <th>25</th>
+              <th>26</th>
+              <th>27</th>
+              <th>28</th>
+              <th>29</th>
+              <th>30</th>
+              <th>31</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in tableList1"
+              :key="key"
+            >
+              <td>{{value.subsectionName}}</td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoHT"
+                  :key='key2'
+                >{{value2.pointName}}</div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>上午</div>
+                  <div>下午</div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>{{value2.AM.one}}</div>
+                  <div>{{value2.PM.one}}</div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.two}}
+                  </div>
+                  <div>
+                    {{value2.PM.two}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.three}}
+                  </div>
+                  <div>
+                    {{value2.PM.three}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.four}}
+                  </div>
+                  <div>
+                    {{value2.PM.four}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.five}}
+                  </div>
+                  <div>
+                    {{value2.PM.five}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.six}}
+                  </div>
+                  <div>
+                    {{value2.PM.six}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.seven}}
+                  </div>
+                  <div>
+                    {{value2.PM.seven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eight}}
+                  </div>
+                  <div>
+                    {{value2.PM.eight}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.nine}}
+                  </div>
+                  <div>
+                    {{value2.PM.nine}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.ten}}
+                  </div>
+                  <div>
+                    {{value2.PM.ten}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eleven}}
+                  </div>
+                  <div>
+                    {{value2.PM.eleven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twelve}}
+                  </div>
+                  <div>
+                    {{value2.PM.twelve}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.fourteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.fourteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.fifteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.fifteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.sixteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.sixteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.seventeen}}
+                  </div>
+                  <div>
+                    {{value2.PM.seventeen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eighteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.eighteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.nineteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.nineteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+
+                  <div>
+                    {{value2.AM.twenty_one}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_one}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_two}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_two}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_three}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_three}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_four}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_four}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_five}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_five}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_six}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_six}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_seven}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_seven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_eight}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_eight}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_nine}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_nine}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirty}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirty}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirty_one}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirty_one}}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="33">注：当天到达该必经点位置的，打“√”，没有到达的不做标记，新增点打点无效的，打“-”。“离职”以符号“○”表示，故障以符号“□”表示。</td>
+            </tr>
+            <tr>
+              <td colspan="16">巡线工签字：</td>
+              <td colspan="17">考核员签字：</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div v-if='tableType=="area"'>
+      <div
+        v-if="tableLevel=='1'"
+        class="tableBox"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="7"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{outDesc+'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th :style="{width:'15%'}">任务分类</th>
+              <th :style="{width:'10%'}">人数</th>
+              <th :style="{width:'15%'}">任务数</th>
+              <th :style="{width:'15%'}">必经点数</th>
+              <th :style="{width:'15%'}">应巡次数</th>
+              <th :style="{width:'15%'}">完成次数</th>
+              <th :style="{width:'15%'}">完成率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in tableList1"
+              :key="key"
+            >
+              <td
+                @click="drill(value.groupName)"
+                :style="{width:'15%',cursor:'pointer'}"
+              >{{value.groupName}}</td>
+              <td :style="{width:'10%'}">{{value.personCount}}</td>
+              <td :style="{width:'15%'}">{{value.taskCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPointCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPassCount}}</td>
+              <td :style="{width:'15%'}">{{value.postBackCount ? value.postBackCount:'0'}}</td>
+              <td :style="{width:'15%'}">{{value.scale}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        v-if="tableLevel=='2'"
+        class="tableBox"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+          class="headtop"
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="7"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{filedDesc+'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="7"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th :style="{width:'10%'}">人员</th>
+              <th :style="{width:'10%'}">人员编码</th>
+              <th :style="{width:'30%'}">任务名称</th>
+              <th :style="{width:'10%'}">必经点数</th>
+              <th :style="{width:'15%'}">应巡次数</th>
+              <th :style="{width:'15%'}">完成次数</th>
+              <th :style="{width:'10%'}">完成率</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in tableList2"
+              :key="key"
+            >
+              <td
+                :style="{width:'10%'}"
+                @click="drill(value.groupName,value.groupCode)"
+              >{{value.groupName}}</td>
+              <td :style="{width:'10%'}">{{value.groupCode}}</td>
+              <td :style="{width:'30%'}">{{value.taskName}}</td>
+              <td :style="{width:'10%'}">{{value.mustPointCount}}</td>
+              <td :style="{width:'15%'}">{{value.mustPassCount}}</td>
+              <td :style="{width:'15%'}">{{value.postBackCount ? value.postBackCount:'0'}}</td>
+              <td :style="{width:'10%'}">{{value.scale}}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div
+        v-if="tableLevel=='3'&&valueFre!='4'"
+        class="tableBoxP"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+          class="headtop"
+        >
+          <thead class="tabthead">
+            <tr>
+              <th
+                colspan="33"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{filedDesc + staffDesc + 'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th style="width:4rem">任务名称</th>
+              <th style="width:7rem">必经点名称</th>
+              <th>&nbsp;&nbsp;1</th>
+              <th>&nbsp;&nbsp;2</th>
+              <th>&nbsp;&nbsp;3</th>
+              <th>&nbsp;&nbsp;4</th>
+              <th>&nbsp;&nbsp;5</th>
+              <th>&nbsp;&nbsp;6</th>
+              <th>&nbsp;&nbsp;7</th>
+              <th>&nbsp;&nbsp;8</th>
+              <th>&nbsp;&nbsp;9</th>
+              <th>10</th>
+              <th>11</th>
+              <th>12</th>
+              <th>13</th>
+              <th>14</th>
+              <th>15</th>
+              <th>16</th>
+              <th>17</th>
+              <th>18</th>
+              <th>19</th>
+              <th>20</th>
+              <th>21</th>
+              <th>22</th>
+              <th>23</th>
+              <th>24</th>
+              <th>25</th>
+              <th>26</th>
+              <th>27</th>
+              <th>28</th>
+              <th>29</th>
+              <th>30</th>
+              <th>31</th>
+            </tr>
+          </thead>
+          <tbody>
+            <template v-for="(value,key) in tableList3">
+              <tr
+                :key="key"
+                v-if="colspanNum&&key+1!=tableList3.length"
+              >
+                <td style="width:4rem">{{value.taskName}}</td>
+                <td style="width:7rem">
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.pointname}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.one | getnbsp}}<br>
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.two | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.three | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.four | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.five | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.six | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.seven | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eight | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.nine | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.ten | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eleven | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twelve | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.fourteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.fifteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.sixteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.seventeen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.eighteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.nineteen | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_one | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_two | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_three | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_four | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_five | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_six | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_seven | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_eight | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.twenty_nine | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirty | getnbsp}}
+                  </div>
+                </td>
+                <td>
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.thirty_one | getnbsp}}
+                  </div>
+                </td>
+              </tr>
+              <tr
+                :key="key"
+                v-if="key+1==tableList3.length"
+              >
+                <td style="width:4rem">{{value.taskName}}</td>
+                <td style="width:7rem">
+                  <div
+                    v-for="(value1,key1) in (value.pointList)"
+                    :key="key1"
+                    class="twoHo"
+                  >
+                    {{value1.pointname}}
+                  </div>
+                </td>
+                <template v-for="item in indexArr">
+                  <td :colspan="colspanNum">
+                    <div
+                      v-for="(value1,key1) in (value.pointList)"
+                      :key="key1"
+                      class="twoHo"
+                    >
+                      {{value1[item]}}<br>
+                    </div>
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="33">注：当天到达该必经点位置的，打“√”，没有到达的不做标记，新增点打点无效的，打“-”。“离职”以符号“○”表示，故障以符号“□”表示。</td>
+            </tr>
+            <tr>
+              <td colspan="16">巡线工签字：</td>
+              <td colspan="17">考核员签字：</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div
+        v-if="tableLevel=='3'&&valueFre=='4'"
+        class="tableBoxP"
+      >
+        <table
+          cellpadding='0'
+          cellspacing='0'
+          id='tableExport'
+        >
+          <thead>
+            <tr>
+              <th
+                colspan="33"
+                class='tableName'
+                style="text-align:center;font-weight:bold"
+              >中国石化销售有限公司公司华南分公司</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='detailName'
+                style="text-align:center;font-weight:bold"
+              >
+                {{filedDesc + staffDesc + 'GPS管道巡线承揽人巡线任务及完成情况统计表'}}
+              </th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='cycle'
+                style="text-align:center;font-weight:bold"
+              >{{freDesc}}</th>
+            </tr>
+            <tr>
+              <th
+                colspan="33"
+                class='time'
+              >
+                {{timeBool=='else' ? startTime:startTime2}}——{{timeBool=='else' ? endTime:endTime2}}
+              </th>
+            </tr>
+            <tr>
+              <th>任务名称</th>
+              <th>必经点名称</th>
+              <th>时段</th>
+              <th>1</th>
+              <th>2</th>
+              <th>3</th>
+              <th>4</th>
+              <th>5</th>
+              <th>6</th>
+              <th>7</th>
+              <th>8</th>
+              <th>9</th>
+              <th>10</th>
+              <th>11</th>
+              <th>12</th>
+              <th>13</th>
+              <th>14</th>
+              <th>15</th>
+              <th>16</th>
+              <th>17</th>
+              <th>18</th>
+              <th>19</th>
+              <th>20</th>
+              <th>21</th>
+              <th>22</th>
+              <th>23</th>
+              <th>24</th>
+              <th>25</th>
+              <th>26</th>
+              <th>27</th>
+              <th>28</th>
+              <th>29</th>
+              <th>30</th>
+              <th>31</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="(value,key) in tableList3"
+              :key="key"
+            >
+              <td>{{value.subsectionName}}</td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoHT"
+                  :key='key2'
+                >{{value2.pointName}}</div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>上午</div>
+                  <div>下午</div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>{{value2.AM.one}}</div>
+                  <div>{{value2.PM.one}}</div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.two}}
+                  </div>
+                  <div>
+                    {{value2.PM.two}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.three}}
+                  </div>
+                  <div>
+                    {{value2.PM.three}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.four}}
+                  </div>
+                  <div>
+                    {{value2.PM.four}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.five}}
+                  </div>
+                  <div>
+                    {{value2.PM.five}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.six}}
+                  </div>
+                  <div>
+                    {{value2.PM.six}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.seven}}
+                  </div>
+                  <div>
+                    {{value2.PM.seven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eight}}
+                  </div>
+                  <div>
+                    {{value2.PM.eight}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.nine}}
+                  </div>
+                  <div>
+                    {{value2.PM.nine}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.ten}}
+                  </div>
+                  <div>
+                    {{value2.PM.ten}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eleven}}
+                  </div>
+                  <div>
+                    {{value2.PM.eleven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twelve}}
+                  </div>
+                  <div>
+                    {{value2.PM.twelve}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.fourteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.fourteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.fifteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.fifteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.sixteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.sixteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.seventeen}}
+                  </div>
+                  <div>
+                    {{value2.PM.seventeen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.eighteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.eighteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.nineteen}}
+                  </div>
+                  <div>
+                    {{value2.PM.nineteen}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_one}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_one}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_two}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_two}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_three}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_three}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_four}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_four}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_five}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_five}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_six}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_six}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_seven}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_seven}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_eight}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_eight}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.twenty_nine}}
+                  </div>
+                  <div>
+                    {{value2.PM.twenty_nine}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirty}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirty}}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div
+                  v-for="(value2,key2) in value.pointList"
+                  class="twoH"
+                  :key='key2'
+                >
+                  <div>
+                    {{value2.AM.thirty_one}}
+                  </div>
+                  <div>
+                    {{value2.PM.thirty_one}}
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="33">注：当天到达该必经点位置的，打“√”，没有到达的不做标记，新增点打点无效的，打“-”。“离职”以符号“○”表示，故障以符号“□”表示。</td>
+            </tr>
+            <tr>
+              <td colspan="16">巡线工签字：</td>
+              <td colspan="17">考核员签字：</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div
+      class="setBox"
+      v-if="setBool"
+    >
+      <div class="inputBox">
+        <div class='setheader'>
+          <span>统计设置</span>
+          <span
+            @click="closeSet"
+            class="closeSet"
+          >×</span>
+        </div>
+        <div class="tr">
+          <span class='lable'>频次：</span>
+          <el-select
+            v-model="valueFre"
+            placeholder="请选择"
+            @change="changeFre"
+          >
+            <el-option
+              v-for="item in optionsFre"
+              :key="item.CODEID"
+              :label="item.CODENAME"
+              :value="item.CODEID"
+            >
+            </el-option>
+          </el-select>
+        </div>
+        <div class="tr">
+          <span class='lable'>输油处：</span>
+          <el-select
+            v-model="valueOut"
+            placeholder="请选择"
+            @change="changeSyc"
+          >
+            <el-option
+              v-for="item in optionsOut"
+              :key="item.GROUPNAME"
+              :label="item.GROUPNAME"
+              :value="item.GROUPCODE"
+            >
+            </el-option>
+          </el-select>
+        </div>
+        <div class="tr">
+          <span class='lable'>站场：</span>
+          <el-select
+            v-model="valueFiled"
+            placeholder="请选择"
+            @change="getModel1"
+          >
+            <el-option
+              v-for="item in optionsFiled"
+              :key="item.GROUPNAME"
+              :label="item.GROUPNAME"
+              :value="item.GROUPCODE"
+            >
+            </el-option>
+          </el-select>
+        </div>
+        <div class="tr">
+          <span class='lable'>人员类型：</span>
+          <el-select
+            v-model="valuePerson"
+            placeholder="请选择"
+            @change="getModel2"
+          >
+            <el-option
+              v-for="item in optionsPerson"
+              :key="item.CLIENTTYPENAME"
+              :label="item.CLIENTTYPENAME"
+              :value="item.CLIENTTYPE"
+            >
+            </el-option>
+          </el-select>
+        </div>
+        <div class="tr">
+          <span class='lable'>人员：</span>
+          <el-select
+            v-model="valueStaff"
+            placeholder="请选择"
+            @change="getModel3"
+          >
+            <el-option
+              v-for="item in optionsStaff"
+              :key="item.PERSON_NAME"
+              :label="item.PERSON_NAME"
+              :value="item.PERSON_ID"
+            >
+            </el-option>
+          </el-select>
+        </div>
+
+        <div class="timeSelect">
+          <el-tabs
+            type="border-card"
+            class='selectTime2'
+            v-model="timeBool"
+          >
+            <el-tab-pane
+              label="日常统计"
+              name="normal"
+            >
+              <el-radio-group
+                v-model="radio"
+                @change="selectTime2"
+              >
+                <el-radio
+                  :disabled="disableSelect"
+                  label="1"
+                >昨天</el-radio>
+                <el-radio
+                  :disabled="disableSelect"
+                  label="2"
+                >本周</el-radio>
+                <el-radio label="3">上周</el-radio>
+                <el-radio label="4">本月</el-radio>
+                <el-radio label="5">上月</el-radio>
+              </el-radio-group>
+            </el-tab-pane>
+            <el-tab-pane
+              label="自定义统计"
+              name="else"
+            >
+              <el-date-picker
+                v-model="timeStr"
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                align="right"
+              >
+              </el-date-picker>
+            </el-tab-pane>
+          </el-tabs>
+        </div>
+        <div class='trBtn'>
+          <span
+            class='searchBtn'
+            @click="searchData"
+          >查询</span>
+          <span class='resetBtn'>重置</span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="mapBox"
+      v-if="mapBool"
+    >
+      <div class="conBox">
+        <div class="title">地图展示<span
+            class="close"
+            @click="closeMap"
+          >{{"×"}}</span></div>
+        <!-- <iframe src="/SinopecPatrol/statistics/static/AntuMap/AntuMap.html"></iframe> -->
+        <iframe src="/SinopecPatrol/statistics/static/AntuMap/AntuMap.html"></iframe>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+import { formatDateUnix } from '../../filters/index.js';
+import FileSaver from 'file-saver';
+import XLSX from 'xlsx';
+import { tableToExcel } from '../../libs/xml';
+export default {
+  components: {},
+  data() {
+    return {
+      mapBool: false, //展示地图
+      loading: false,
+      allTaskList: null,
+      tableList1: [],
+      tableList2: [],
+      tableList3: [],
+      tableList4: [],
+      tableLevel: '1', //列表钻取层级
+      setBool: false, //统计设置弹框
+      optionsFre: [], //频次
+      valueFre: '',
+      freDesc: '',
+      optionsOut: [], //输油处
+      valueOut: '',
+      outDesc: '',
+      optionsFiled: [], //场站
+      valueFiled: '',
+      filedDesc: '',
+      optionsPerson: [], //人员类型
+      valuePerson: '',
+      optionsStaff: [], //人员
+      valueStaff: '',
+      staffDesc: '',
+      optionsType: [], //统计模式
+      valueType: '',
+      radio: '4',
+      timeStr: '',
+      disableSelect: false, //0.5,1天是否禁用
+      tableType: 'all', //所有、处、人员
+      startTime: '',
+      endTime: '',
+      startTime2: '',
+      endTime2: '',
+      timeBool: 'normal',
+      optionsDay: [
+        {
+          name: '1',
+          key: 'one',
+        },
+        {
+          name: '2',
+          key: 'two',
+        },
+        {
+          name: '3',
+          key: 'three',
+        },
+        {
+          name: '4',
+          key: 'four',
+        },
+        {
+          name: '5',
+          key: 'five',
+        },
+        {
+          name: '6',
+          key: 'six',
+        },
+        {
+          name: '7',
+          key: 'seven',
+        },
+        {
+          name: '8',
+          key: 'eight',
+        },
+        {
+          name: '9',
+          key: 'nine',
+        },
+        {
+          name: '10',
+          key: 'ten',
+        },
+        {
+          name: '11',
+          key: 'eleven',
+        },
+        {
+          name: '12',
+          key: 'twelve',
+        },
+        {
+          name: '13',
+          key: 'thirteen',
+        },
+        {
+          name: '14',
+          key: 'fourteen',
+        },
+        {
+          name: '15',
+          key: 'fifteen',
+        },
+        {
+          name: '16',
+          key: 'sixteen',
+        },
+        {
+          name: '17',
+          key: 'seventeen',
+        },
+        {
+          name: '18',
+          key: 'eighteen',
+        },
+        {
+          name: '19',
+          key: 'nineteen',
+        },
+        {
+          name: '20',
+          key: 'twenty',
+        },
+        {
+          name: '21',
+          key: 'twenty_one',
+        },
+        {
+          name: '22',
+          key: 'twenty_two',
+        },
+        {
+          name: '23',
+          key: 'twenty_three',
+        },
+        {
+          name: '24',
+          key: 'twenty_four',
+        },
+        {
+          name: '25',
+          key: 'twenty_five',
+        },
+        {
+          name: '26',
+          key: 'twenty_six',
+        },
+        {
+          name: '27',
+          key: 'twenty_seven',
+        },
+        {
+          name: '28',
+          key: 'twenty_eight',
+        },
+        {
+          name: '29',
+          key: 'twenty_nine',
+        },
+        {
+          name: '30',
+          key: 'thirty',
+        },
+        {
+          name: '31',
+          key: 'thirty_one',
+        },
+      ],
+      valueDay: 'one',
+      indexArr: null,
+      colspanNum: null,
+    };
+  },
+  computed: {},
+  methods: {
+    selectTime2() {
+      let val = this.radio;
+      if (val == '1') {
+        this.getYestoday();
+      } else if (val == '2') {
+        this.getWeek();
+      } else if (val == '3') {
+        this.getPreWeek();
+      } else if (val == '4') {
+        this.getMonth();
+      } else {
+        this.getPreMonth();
+      }
+    },
+    goMap() {
+      //查看地图
+      let tableType = this.tableType;
+      let valueFre = this.valueFre;
+      let tableLevel = this.tableLevel;
+      let timeBool = this.timeBool;
+      let startTime = this.startTime;
+      let startTime2 = this.startTime2;
+      let nowTime = timeBool == 'else' ? startTime : startTime2;
+      sessionStorage.setItem('nowTime', nowTime);
+      if (tableType == 'all') {
+        if (tableLevel == '4') {
+          let tableList4 = this.tableList4;
+          if (valueFre == '4') {
+            sessionStorage.setItem('pointFre', 4);
+          } else {
+            sessionStorage.setItem('pointFre', 'else');
+          }
+          sessionStorage.setItem('mapInfo', JSON.stringify(tableList4));
+          sessionStorage.setItem('pointKey', this.valueDay);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: '无空间位置',
+            showClose: true,
+            duration: 5000,
+          });
+          return false;
+        }
+      } else if (tableType == 'area') {
+        if (tableLevel == '3') {
+          let tableList3 = this.tableList3;
+          if (valueFre == '4') {
+            sessionStorage.setItem('pointFre', 4);
+          } else {
+            sessionStorage.setItem('pointFre', 'else');
+          }
+          sessionStorage.setItem('mapInfo', JSON.stringify(tableList3));
+          sessionStorage.setItem('pointKey', this.valueDay);
+        } else {
+          window.vm.$message({
+            type: 'error',
+            message: '无空间位置',
+            showClose: true,
+            duration: 5000,
+          });
+          return false;
+        }
+      } else if (tableType == 'person') {
+        let tableList1 = this.tableList1;
+        if (valueFre == '4') {
+          sessionStorage.setItem('pointFre', 4);
+        } else {
+          sessionStorage.setItem('pointFre', 'else');
+        }
+        sessionStorage.setItem('mapInfo', JSON.stringify(tableList1));
+        sessionStorage.setItem('pointKey', this.valueDay);
+      } else {
+        window.vm.$message({
+          type: 'error',
+          message: '无空间位置',
+          showClose: true,
+          duration: 5000,
+        });
+        return false;
+      }
+      this.mapBool = true;
+    },
+    closeMap() {
+      this.mapBool = false;
+      sessionStorage.setItem('mapInfo', null);
+    },
+    exportToExcel() {
+      console.log(454545);
+      //导出
+      var tab = document.getElementById('tableExport')
+      console.log(tab)
+      tableToExcel('tableExport', 'GPS管道巡线承揽人巡线任务及完成情况统计表');
+      // let et = XLSX.utils.table_to_book(document.getElementById('tableExport')); //此处传入table的DOM节点
+      // let etout = XLSX.write(et, {
+      //     bookType: 'xlsx',
+      //     bookSST: true,
+      //     type: 'array'
+      // });
+      // console.log(etout)
+      // try {
+      //     FileSaver.saveAs(new Blob([etout], {
+      //         type: 'application/octet-stream'
+      //     }), 'GPS管道巡线承揽人巡线任务及完成情况统计表.xlsx');   //trade-publish.xlsx 为导出的文件名
+      // } catch (e) {
+      //     console.log(e, etout) ;
+      // }
+      // return etout;
+    },
+    searchData() {
+      this.getAlltask();
+    },
+    getYestoday() {
+      //昨天
+      let start = new Date(new Date().setDate(new Date().getDate() - 1));
+      let end = new Date(new Date().setDate(new Date().getDate() - 1));
+      let that = this;
+      let timeStr1 = new Date(start).getTime(); //开始时间
+      let timeStr2 = new Date(end).getTime(); //结束时间
+      timeStr1 = formatDateUnix(timeStr1);
+      that.startTime2 = timeStr1;
+      timeStr2 = formatDateUnix(timeStr2);
+      that.endTime2 = timeStr2;
+      console.log(timeStr1, timeStr2);
+    },
+    getWeek() {
+      //本周
+      let now = new Date();
+      let nowYear = now.getFullYear(); //当前年
+      let nowDayOfWeek = now.getDay(); //今天本周的第几天
+      let nowDay = now.getDate(); //当前日
+      let nowMonth = now.getMonth(); //当前月
+
+      let weekStart = new Date(nowYear, nowMonth, nowDay - nowDayOfWeek + 1);
+      let weekEnd = new Date(nowYear, nowMonth, nowDay);
+      let that = this;
+      let timeStr1 = new Date(weekStart).getTime(); //开始时间
+      let timeStr2 = new Date(weekEnd).getTime(); //结束时间
+      timeStr1 = formatDateUnix(timeStr1);
+      that.startTime2 = timeStr1;
+      timeStr2 = formatDateUnix(timeStr2);
+      that.endTime2 = timeStr2;
+      console.log(timeStr1, timeStr2);
+    },
+    getPreWeek() {
+      //上周
+      let now = new Date();
+      let nowYear = now.getFullYear(); //当前年
+      let nowDayOfWeek = now.getDay(); //今天本周的第几天
+      let nowDay = now.getDate(); //当前日
+      let nowMonth = now.getMonth(); //当前月
+
+      let weekStartDate = new Date(
+        nowYear,
+        nowMonth,
+        nowDay - nowDayOfWeek - 6
+      );
+      let weekEndDate = new Date(nowYear, nowMonth, nowDay - nowDayOfWeek);
+      let that = this;
+      let timeStr1 = new Date(weekStartDate).getTime(); //开始时间
+      let timeStr2 = new Date(weekEndDate).getTime(); //结束时间
+      timeStr1 = formatDateUnix(timeStr1);
+      that.startTime2 = timeStr1;
+      timeStr2 = formatDateUnix(timeStr2);
+      that.endTime2 = timeStr2;
+      console.log(timeStr1, timeStr2);
+    },
+    getMonth() {
+      //本月
+      let endDate = formatDateUnix(new Date().getTime());
+      let arr = endDate.split('-');
+      let startDate = arr[0] + '-' + arr[1] + '-' + '01';
+      console.log(startDate, endDate);
+      let that = this;
+      that.startTime2 = startDate;
+      that.endTime2 = endDate;
+    },
+    getPreMonth() {
+      //上月
+      let now = new Date(); //当前日期
+      let nowMonth = now.getMonth(); //当前月
+      let nowYear = now.getFullYear(); //当前年
+      //上月的结束时间
+      let endDate = new Date(nowYear, nowMonth, 0);
+      endDate = formatDateUnix(endDate.getTime());
+      let startDate = new Date(nowYear, nowMonth - 1, 1);
+      startDate = formatDateUnix(startDate.getTime());
+      console.log(startDate, endDate);
+      let that = this;
+      that.startTime2 = startDate;
+      that.endTime2 = endDate;
+    },
+    searchSet() {
+      //统计设置
+      let that = this;
+      this.reset();
+      that.loading = true;
+      that.setBool = true;
+      that.$axios
+        .all([
+          that.$myHttp.get(
+            'gpsGroups/getAllArea?userId=' + sessionStorage.getItem('userId')
+          ),
+          that.$myHttp.get(
+            'gpsGroups/getClientTypeList?userId=' +
+              sessionStorage.getItem('userId')
+          ),
+          that.$myHttp.get('gpsGroups/getExecuteTypeList'),
+        ])
+        .then(
+          that.$axios.spread(function (sycList, personType, freList) {
+            that.optionsOut = sycList.result; //输油处
+            that.optionsPerson = personType.result; //人员类型
+            that.optionsFre = freList.result; //频次列表
+            that.loading = false;
+          })
+        );
+    },
+    reset() {
+      //重置
+      this.valueStaff = '';
+      this.valueFiled = '';
+    },
+    changeSyc(val) {
+      //选择输油处，筛选站场
+      let that = this;
+      that.valueFiled = null;
+      that.optionsFiled = [];
+      that.filedDesc = '';
+      let arr = this.optionsOut; //输油处
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].GROUPCODE == val) {
+          this.outDesc = arr[i].GROUPNAME; //输油处描述
+        }
+      }
+      that.$myHttp
+        .get(
+          'gpsGroups/getStationsByArea?userId=' +
+            sessionStorage.getItem('userId') +
+            '&groupCode=' +
+            val
+        )
+        .then((res) => {
+          that.optionsFiled = res.result;
+        });
+      that.getModel();
+    },
+    getModel() {
+      //查询人员
+      let that = this;
+      let areaId = that.valueOut;
+      let stationId = that.valueFiled;
+      let clientType = that.valuePerson;
+      that.$myHttp
+        .get(
+          'gpsGroups/getPersonList?userId=' +
+            sessionStorage.getItem('userId') +
+            '&areaId=' +
+            areaId +
+            '&stationId=' +
+            stationId +
+            '&clientType=' +
+            clientType
+        )
+        .then((res) => {
+          that.optionsStaff = res.result;
+        });
+    },
+    getModel1(val) {
+      //场站描述
+      let arr = this.optionsFiled;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].GROUPCODE == val) {
+          this.filedDesc = arr[i].GROUPNAME;
+        }
+      }
+      this.getModel();
+    },
+    getModel2(val) {
+      this.valueStaff = null;
+      this.optionsStaff = null;
+      this.getModel();
+    },
+    getModel3(val) {
+      //人员描述
+      let arr = this.optionsStaff;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].PERSON_ID == val) {
+          this.staffDesc = arr[i].PERSON_NAME;
+        }
+      }
+      this.getModel();
+    },
+    changeFre(val) {
+      console.log(666669, val);
+      //改变频率，设置周期可选
+      let arr = this.optionsFre;
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i].CODEID == val) {
+          this.freDesc = arr[i].CODENAME;
+        }
+      }
+      if (val == '4' || val == '5') {
+        this.disableSelect = false;
+      } else {
+        this.disableSelect = true;
+        if (this.radio == '1' || this.radio == '2') {
+          this.radio = '3';
+        }
+      }
+      if (val == '5') {
+        this.colspanNum = 1;
+        this.indexArr = [
+          'one',
+          'two',
+          'three',
+          'four',
+          'five',
+          'six',
+          'seven',
+          'eight',
+          'nine',
+          'ten',
+          'eleven',
+          'twelve',
+          'thirteen',
+          'fourteen',
+          'fifteen',
+          'sixteen',
+          'seventeen',
+          'eighteen',
+          'nineteen',
+          'twenty',
+          'twenty_one',
+          'twenty_two',
+          'twenty_three',
+          'twenty_four',
+          'twenty_five',
+          'twenty_six',
+          'twenty_seven',
+          'twenty_eight',
+          'twenty_nine',
+          'thirty',
+          'thirty_one',
+        ];
+      } else if (val == '6') {
+        this.colspanNum = 2;
+        this.indexArr = [
+          'one',
+          'three',
+          'five',
+          'seven',
+          'nine',
+          'eleven',
+          'thirteen',
+          'fifteen',
+          'seventeen',
+          'nineteen',
+          'twenty_one',
+          'twenty_three',
+          'twenty_five',
+          'twenty_seven',
+          'twenty_nine',
+          'thirty_one',
+        ];
+      } else if (val == '7') {
+        this.colspanNum = 3;
+        this.indexArr = [
+          'one',
+          'four',
+          'seven',
+          'ten',
+          'thirteen',
+          'sixteen',
+          'nineteen',
+          'twenty_two',
+          'twenty_five',
+          'twenty_eight',
+          'thirty_one',
+        ];
+      } else if (val == '8') {
+        this.colspanNum = 7;
+        this.indexArr = [
+          'one',
+          'eight',
+          'seventeen',
+          'twenty_two',
+          'twenty_nine',
+        ];
+      } else {
+        this.indexArr = null;
+        this.colspanNum = null;
+      }
+    },
+    closeSet() {
+      //关闭统计设置
+      this.setBool = false;
+    },
+    drill(name, code) {
+      //钻取
+      let tableLevel = this.tableLevel;
+      let that = this;
+      that.loading = true;
+      let timeBool = this.timeBool;
+      let timeStr1, timeStr2;
+      if (timeBool == 'else') {
+        timeStr1 = that.startTime;
+        timeStr2 = that.endTime;
+      } else {
+        timeStr1 = this.startTime2;
+        timeStr2 = this.endTime2;
+      }
+      let areaId = that.valueOut; //输油处
+      let clientTypeId = that.valuePerson; //人员类型
+      let personId = that.valueStaff; //人员
+      let stationId = that.valueFiled; //场站
+      let executeType = that.valueFre; //频率
+      if (tableLevel == '1') {
+        this.tableLevel = '2';
+        that.tableList2 = null;
+        that.$myHttp
+          .get(
+            'gpsGroups/getStationsByArea?userId=' +
+              sessionStorage.getItem('userId') +
+              '&groupCode=' +
+              areaId
+          )
+          .then((res) => {
+            let arr = res.result;
+            that.optionsFiled = arr;
+            let codeId = '';
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i].GROUPNAME == name) {
+                codeId = arr[i].GROUPCODE;
+              }
+            }
+            that.valueFiled = codeId;
+            that.filedDesc = name;
+            //站任务完成情况统计
+            that.$myHttp
+              .post('taskComp/getTaskStatByStation', {
+                areaId: areaId,
+                clientTypeId: clientTypeId,
+                endDate: timeStr2,
+                executeType: executeType,
+                mode: '',
+                personId: personId,
+                startDate: timeStr1,
+                stationId: codeId,
+                userId: sessionStorage.getItem('userId'),
+              })
+              .then((res) => {
+                that.tableList2 = res.result;
+                that.loading = false;
+              });
+          });
+      } else if (tableLevel == '2') {
+        this.tableLevel = '3';
+        that.tableList3 = null;
+        //人员任务完成情况统计
+        that.valueStaff = code;
+        that.staffDesc = name;
+        if (executeType == '4') {
+          //人员任务完成情况统计0.5频次
+          that.$myHttp
+            .post('taskComp/getTaskStatByPerson2', {
+              areaId: areaId,
+              clientTypeId: clientTypeId,
+              endDate: timeStr2,
+              executeType: executeType,
+              mode: '',
+              personId: code,
+              startDate: timeStr1,
+              stationId: stationId,
+              userId: sessionStorage.getItem('userId'),
+            })
+            .then((res) => {
+              that.tableList3 = res.result;
+              that.loading = false;
+            });
+        } else {
+          that.$myHttp
+            .post('taskComp/getTaskStatByPerson', {
+              areaId: areaId,
+              clientTypeId: clientTypeId,
+              endDate: timeStr2,
+              executeType: executeType,
+              mode: '',
+              personId: code,
+              startDate: timeStr1,
+              stationId: stationId,
+              userId: sessionStorage.getItem('userId'),
+            })
+            .then((res) => {
+              that.tableList3 = res.result;
+              that.loading = false;
+            });
+        }
+      }
+    },
+    drillAll(code, name) {
+      //所有输油处钻取
+      let tableLevel = this.tableLevel;
+      let that = this;
+      that.loading = true;
+
+      let timeBool = this.timeBool;
+      let timeStr1, timeStr2;
+      if (timeBool == 'else') {
+        timeStr1 = that.startTime;
+        timeStr2 = that.endTime;
+      } else {
+        timeStr1 = this.startTime2;
+        timeStr2 = this.endTime2;
+      }
+
+      let areaId = that.valueOut; //输油处
+      let clientTypeId = that.valuePerson; //人员类型
+      let personId = that.valueStaff; //人员
+      let stationId = that.valueFiled; //场站
+      let executeType = that.valueFre; //频率
+      if (tableLevel == '1') {
+        this.tableLevel = '2';
+        that.tableList2 = null;
+        //处任务完成情况统计
+        that.$myHttp
+          .get(
+            'gpsGroups/getAllArea?userId=' + sessionStorage.getItem('userId')
+          )
+          .then((res) => {
+            let arr = res.result;
+            let codeName = '';
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i].GROUPCODE == code) {
+                codeName = arr[i].GROUPNAME;
+              }
+            }
+            that.optionsOut = arr; //输油处
+            that.valueOut = code;
+            that.outDesc = codeName;
+            that.$myHttp
+              .post('taskComp/getTaskStatByArea', {
+                areaId: code,
+                clientTypeId: clientTypeId,
+                endDate: timeStr2,
+                executeType: executeType,
+                mode: '',
+                personId: personId,
+                startDate: timeStr1,
+                stationId: stationId,
+                userId: sessionStorage.getItem('userId'),
+              })
+              .then((res) => {
+                that.tableList2 = res.result;
+                that.loading = false;
+              });
+          });
+      } else if (this.tableLevel == '2') {
+        this.tableLevel = '3';
+        that.tableList3 = null;
+        that.$myHttp
+          .get(
+            'gpsGroups/getStationsByArea?userId=' +
+              sessionStorage.getItem('userId') +
+              '&groupCode=' +
+              areaId
+          )
+          .then((res) => {
+            let arr = res.result;
+            that.optionsFiled = arr;
+            let codeName = '';
+            for (let i = 0; i < arr.length; i++) {
+              if (arr[i].GROUPCODE == code) {
+                codeName = arr[i].GROUPNAME;
+              }
+            }
+            that.valueFiled = code;
+            that.filedDesc = codeName;
+            //站任务完成情况统计
+            that.$myHttp
+              .post('taskComp/getTaskStatByStation', {
+                areaId: areaId,
+                clientTypeId: clientTypeId,
+                endDate: timeStr2,
+                executeType: executeType,
+                mode: '',
+                personId: personId,
+                startDate: timeStr1,
+                stationId: code,
+                userId: sessionStorage.getItem('userId'),
+              })
+              .then((res) => {
+                that.tableList3 = res.result;
+                that.loading = false;
+              });
+          });
+      } else if (this.tableLevel == '3') {
+        this.tableLevel = '4';
+        that.tableList4 = null;
+        //人员任务完成情况统计
+        that.valueStaff = code;
+        that.staffDesc = name;
+        if (executeType == '4') {
+          //人员任务完成情况统计0.5频次
+          that.$myHttp
+            .post('taskComp/getTaskStatByPerson2', {
+              areaId: areaId,
+              clientTypeId: clientTypeId,
+              endDate: timeStr2,
+              executeType: executeType,
+              mode: '',
+              personId: code,
+              startDate: timeStr1,
+              stationId: stationId,
+              userId: sessionStorage.getItem('userId'),
+            })
+            .then((res) => {
+              console.log(4454545,res.result)
+              that.tableList4 = res.result;
+              that.loading = false;
+            });
+        } else {
+          that.$myHttp
+            .post('taskComp/getTaskStatByPerson', {
+              areaId: areaId,
+              clientTypeId: clientTypeId,
+              endDate: timeStr2,
+              executeType: executeType,
+              mode: '',
+              personId: code,
+              startDate: timeStr1,
+              stationId: stationId,
+              userId: sessionStorage.getItem('userId'),
+            })
+            .then((res) => {
+              console.log(4545450, res.result);
+              that.tableList4 = res.result;
+              that.loading = false;
+            });
+        }
+      }
+    },
+    goBack() {
+      //返回
+      let tableLevel = this.tableLevel;
+      if (tableLevel == '4') {
+        this.tableLevel = '3';
+      } else if (tableLevel == '3') {
+        this.tableLevel = '2';
+      } else if (this.tableLevel == '2') {
+        this.tableLevel = '1';
+      }
+    },
+    getAlltask() {
+      let that = this;
+      that.loading = true;
+      let timeBool = this.timeBool;
+      let timeStr1, timeStr2;
+      if (timeBool == 'else') {
+        timeStr1 = new Date(that.timeStr[0]).getTime(); //开始时间
+        timeStr2 = new Date(that.timeStr[1]).getTime(); //结束时间
+        timeStr1 = formatDateUnix(timeStr1);
+        that.startTime = timeStr1;
+        timeStr2 = formatDateUnix(timeStr2);
+        that.endTime = timeStr2;
+      } else {
+        timeStr1 = this.startTime2;
+        timeStr2 = this.endTime2;
+      }
+
+      let areaId = that.valueOut; //输油处
+      let clientTypeId = that.valuePerson; //人员类型
+      let personId = that.valueStaff; //人员
+      let stationId = that.valueFiled; //场站
+      let executeType = that.valueFre; //频率
+      that.tableLevel = '1';
+      if (personId != '') {
+        if (executeType == '4') {
+          //人员任务完成情况统计0.5频次
+          that.$myHttp
+            .post('taskComp/getTaskStatByPerson2', {
+              areaId: areaId,
+              clientTypeId: clientTypeId,
+              endDate: timeStr2,
+              executeType: executeType,
+              mode: '',
+              personId: personId,
+              startDate: timeStr1,
+              stationId: stationId,
+              userId: sessionStorage.getItem('userId'),
+            })
+            .then((res) => {
+              that.tableList1 = res.result;
+              this.setBool = false; //关闭统计设置
+              this.tableType = 'person';
+              that.loading = false;
+            });
+        } else {
+          //人员任务完成情况统计
+          that.$myHttp
+            .post('taskComp/getTaskStatByPerson', {
+              areaId: areaId,
+              clientTypeId: clientTypeId,
+              endDate: timeStr2,
+              executeType: executeType,
+              mode: '',
+              personId: personId,
+              startDate: timeStr1,
+              stationId: stationId,
+              userId: sessionStorage.getItem('userId'),
+            })
+            .then((res) => {
+              that.tableList1 = res.result;
+              this.setBool = false; //关闭统计设置
+              this.tableType = 'person';
+              that.loading = false;
+            });
+        }
+      } else if (areaId != '') {
+        //场站任务完成情况统计
+        that.$myHttp
+          .post('taskComp/getTaskStatByArea', {
+            areaId: areaId,
+            clientTypeId: clientTypeId,
+            endDate: timeStr2,
+            executeType: executeType,
+            mode: '',
+            personId: personId,
+            startDate: timeStr1,
+            stationId: stationId,
+            userId: sessionStorage.getItem('userId'),
+          })
+          .then((res) => {
+            that.tableList1 = res.result;
+            this.setBool = false; //关闭统计设置
+            this.tableType = 'area';
+            that.loading = false;
+          });
+      } else {
+        //全部管理处任务完成情况统计
+        that.$myHttp
+          .post('taskComp/getTaskStatByAll', {
+            areaId: areaId,
+            clientTypeId: clientTypeId,
+            endDate: timeStr2,
+            executeType: executeType,
+            mode: '',
+            personId: personId,
+            startDate: timeStr1,
+            stationId: stationId,
+            userId: sessionStorage.getItem('userId'),
+          })
+          .then((res) => {
+            that.tableList1 = res.result;
+            this.setBool = false; //关闭统计设置
+            this.tableType = 'all';
+            that.loading = false;
+          });
+      }
+    },
+  },
+  watch: {},
+  beforeMount() {},
+  beforeDestroy() {},
+  created() {},
+  mounted() {
+    this.getMonth();
+  },
+};
+</script>
+<style scoped lang='less'>
+.headtop thead {
+  padding-right: 8px;
+}
+.headtop tbody {
+  display: block;
+  height: 30rem;
+  overflow-y: auto;
+  .nodata {
+    background: #16171e;
+    text-align: center;
+    padding-top: 100px;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+  }
+}
+
+.headtop thead,
+.headtop tbody tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+.headtop .tabthead{
+  display: inline-block;
+  width: 100%;
+  tr{
+    display: table;
+    width: 100%;
+  }
+}
+.headtop tfoot{
+  display: inherit;
+}
+.headtop thead {
+  width: calc(100% - 0.6em);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+  background-color: #f5f5f5;
+}
+</style>

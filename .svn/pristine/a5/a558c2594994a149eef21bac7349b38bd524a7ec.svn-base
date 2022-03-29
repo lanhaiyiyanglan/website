@@ -1,0 +1,142 @@
+<template>
+    <div style="overflow-x:auto;">
+        <table class="countTable" border="1" bordercolor="#c6c6c6">
+            <thead>
+                <tr>
+                    <th width="88px">施工点名称</th>
+                    <th width="88px">必经点名称</th>
+                    <th v-for="(val,index) in days" :key="index" width="42px">{{val}}</th>
+                </tr>
+            </thead>
+            <tbody >
+               <template v-for="item in tableData">
+                    <tr>
+                    <td width="88px">{{item.desName}}</td>
+                    <template v-if="item.pointName">
+                        <td width="88px">{{item.pointName}}</td>
+                    </template>
+                    <template v-else>
+                        <td width="88px">{{item.STAKEID}}</td>
+                    </template>
+                    <!-- <td>{{item.pointName}}</td> -->
+                    <td v-for="(v,idx) in item.arriveList" :key="idx" width="42px">
+                        <template v-if="v!=null">
+                             <div class="hoverContent">
+                                 <span @mouseover="showTips($event)" @mouseout="hideTips($event)">{{v}}</span>
+                                 <div class="tips">
+                                     <input :value="item.timeList[idx]" readonly />
+                                     <input :value="item.personList[idx]" readonly />
+                                 </div>
+                             </div>
+                        </template>
+                        <template v-else>
+                            {{v}}
+                        </template>
+                    </td>
+                </tr>
+               </template>
+            </tbody>
+            
+    </table>
+    </div>
+</template>
+<script>
+export default {
+    props:["tableData"],
+    data(){
+        return{
+            //yearMonth:this.times,//年月
+            days:31,//当前月有多少天
+            tableList:[],
+        }
+    },
+    created(){
+        //this.days=this.dayjs(this.yearMonth,"YYYY-MM").daysInMonth();
+    },
+    methods:{
+        showTips(e){
+          e.target.parentNode.lastChild.style.display="block";
+        },
+        hideTips(e) {
+         e.target.parentNode.lastChild.style.display="none";
+        }
+    },
+    watch: {
+            //   times(newV,oldV) {
+            //     this.yearMonth=newV;
+            //     this.days=this.dayjs(this.yearMonth,"YYYY-MM").daysInMonth();
+            //   } 
+    },    
+}
+</script>
+<style scoped>
+.hoverContent{position:relative;width:100%;height:100%;}
+.hoverContent span{display:block;width:100%;height:100%;cursor: pointer;}
+.tips{
+    display: none;
+    line-height: 16px;
+    z-index: 9999;
+    padding: 2px 0px;
+    border: 1px solid #c6c6c6;
+    position: absolute;
+    top: 1px;
+    background: #fff;
+    border-radius: 5px;
+    font-size: 13px;
+    color: #333;
+    width: 150px;
+    margin-left: -143px;
+}
+.tips input{border:none;outline:none;text-indent: 10px;display:block;box-sizing: border-box;width:145px;}
+.tips:after{
+    content: "";
+    position: absolute;
+    left: 148px;
+    top: 8px;
+    width: 0;
+    height: 0;
+    border-top: 9px solid transparent;
+    border-left: 9px solid #fff;
+    border-right: 9px solid transparent;
+    border-bottom: 9px solid transparent;
+}
+.tips:before{
+    content: "";
+    position: absolute;
+    left: 148px;
+    top: 7px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-left: 10px solid #c6c6c6;
+    border-right: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+  }
+.countTable{width:1497px;margin:0 auto;}
+.countTable thead{display: inline-block;width: 100%;table-layout: fixed;box-sizing: border-box;}
+.countTable thead tr{background:#ddeeff!important;border-top:none!important;}
+.countTable tbody{display: inline-block;width: 100%;overflow:visible;overflow-y:auto;max-height:30rem;}
+.countTable tr{display:inline-block;width:100%;border-top:1px solid #c6c6c6;}
+.countTable  th,.countTable  td{border-right:1px solid #c6c6c6;text-align: center;}
+.countTable  th{border-left:none;border-bottom:none;border-top:none;}
+.countTable  th:last-child{border-right:none;}
+.countTable tr>td{border-bottom:none;border-left:none;border-top:none;}
+.countTable tr>td:last-child{border-right: none;}
+
+/* 设置滚动条的样式 */
+::-webkit-scrollbar {
+width:10px;
+}
+/* 滚动槽 */
+::-webkit-scrollbar-track {
+-webkit-box-shadow:inset006pxrgba(0,0,0,0.3);
+border-radius:10px;
+}
+/* 滚动条滑块 */
+::-webkit-scrollbar-thumb {
+border-radius:10px;
+background:rgba(0,0,0,0.1);
+-webkit-box-shadow:inset006pxrgba(0,0,0,0.5);
+}
+</style>
+</style>

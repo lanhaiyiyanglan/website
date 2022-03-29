@@ -1,0 +1,244 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- AP-Map切图规则配置文件 -->
+<MapConfig>
+	<LicenseKey>214342247-11939508-3316530-21889098-663306-9065182</LicenseKey>
+  <LayerLevelnum>12</LayerLevelnum>
+  <Picturewidth>400</Picturewidth>
+  <Pictureheight>300</Pictureheight>
+	<MINlongitude>94.333</MINlongitude>
+	<MAXlatitude>32.583</MAXlatitude>
+  <MAXlongitude>121</MAXlongitude>
+  <MINlatitude>17</MINlatitude>
+	<Layer>
+		<ZOOM>1</ZOOM>
+		<CX>8</CX>
+		<CY>6</CY>
+		<ScaleStr>50公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>2</ZOOM>
+		<CX>4</CX>
+		<CY>3</CY>
+		<ScaleStr>25公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>3</ZOOM>
+		<CX>2</CX>
+		<CY>1.5</CY>
+		<ScaleStr>12.5公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>4</ZOOM>
+		<CX>1</CX>
+		<CY>0.75</CY>
+		<ScaleStr>7公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>5</ZOOM>
+		<CX>0.5</CX>
+		<CY>0.375</CY>
+		<ScaleStr>3.5公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>6</ZOOM>
+		<CX>0.25</CX>
+		<CY>0.1875</CY>
+		<ScaleStr>1.7公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>7</ZOOM>
+		<CX>0.125</CX>
+		<CY>0.09375</CY>
+		<ScaleStr>1公里</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>8</ZOOM>
+		<CX>0.0625</CX>
+		<CY>0.046875</CY>
+		<ScaleStr>400米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>9</ZOOM>
+		<CX>0.03125</CX>
+		<CY>0.0234375</CY>
+		<ScaleStr>200米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>10</ZOOM>
+		<CX>0.015625</CX>
+		<CY>0.01171875</CY>
+		<ScaleStr>100米</ScaleStr>
+	</Layer>
+	<Layer>
+		<ZOOM>11</ZOOM>
+		<CX>0.0078125</CX>
+		<CY>0.005859375</CY>
+		<ScaleStr>50米</ScaleStr>
+	</Layer>
+	
+	<Layer>
+		<ZOOM>12</ZOOM>
+		<CX>0.00390625</CX>
+		<CY>0.0029296875</CY>
+		<ScaleStr>25米</ScaleStr>
+	</Layer>
+	
+	<NaviLayer>
+		<ZOOM>1</ZOOM>
+		<CX>8</CX>
+		<CY>6</CY>
+		<ScaleStr>50公里</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>2</ZOOM>
+		<CX>4</CX>
+		<CY>3</CY>
+		<ScaleStr>25公里</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>3</ZOOM>
+		<CX>2</CX>
+		<CY>1.5</CY>
+		<ScaleStr>12.5公里</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>4</ZOOM>
+		<CX>1</CX>
+		<CY>0.75</CY>
+		<ScaleStr>7公里</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>5</ZOOM>
+		<CX>0.5</CX>
+		<CY>0.375</CY>
+		<ScaleStr>3.5公里</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>6</ZOOM>
+		<CX>0.25</CX>
+		<CY>0.1875</CY>
+		<ScaleStr>1.7公里</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>7</ZOOM>
+		<CX>0.125</CX>
+		<CY>0.09375</CY>
+		<ScaleStr>1公里</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>8</ZOOM>
+		<CX>0.0625</CX>
+		<CY>0.046875</CY>
+		<ScaleStr>400米</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>9</ZOOM>
+		<CX>0.03125</CX>
+		<CY>0.0234375</CY>
+		<ScaleStr>200米</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>10</ZOOM>
+		<CX>0.015625</CX>
+		<CY>0.01171875</CY>
+		<ScaleStr>100米</ScaleStr>
+	</NaviLayer>
+	<NaviLayer>
+		<ZOOM>11</ZOOM>
+		<CX>0.0078125</CX>
+		<CY>0.005859375</CY>
+		<ScaleStr>50米</ScaleStr>
+	</NaviLayer>
+	
+	<NaviLayer>
+		<ZOOM>12</ZOOM>
+		<CX>0.00390625</CX>
+		<CY>0.0029296875</CY>
+		<ScaleStr>25米</ScaleStr>
+	</NaviLayer>
+	
+	
+	<MapRenderQuery url=":8282/APMapServer"/>
+	
+	<!-- 提供给客户端TOC图层控制的使用内容,按照s配置顺序走,Order越大，越在上面显示,所以影像的Order朝小配置 -->
+	<MapLayerConfig>
+		<!-- 鹰眼图 -->
+		<maplayer LayerID="NaviMap"  Display="true" layerclass="NaviMap" titleLayerClass="1" url="http:/10.175.2.158:81/map">	
+			<CutMapLayer name="dlg"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="2" name="卫星影像" Display="false" layerclass="GoogleMap" url="http://10.175.2.91:81/image">
+			<LayerMatching>1=7</LayerMatching>
+			<LayerMatching>2=8</LayerMatching>
+			<LayerMatching>3=9</LayerMatching>
+			<LayerMatching>4=10</LayerMatching>
+			<LayerMatching>5=11</LayerMatching>
+			<LayerMatching>6=12</LayerMatching>
+			<LayerMatching>7=13</LayerMatching>
+			<LayerMatching>8=14</LayerMatching>
+			<LayerMatching>9=15</LayerMatching>
+			<LayerMatching>10=16</LayerMatching>
+			<LayerMatching>11=17</LayerMatching>
+		<!--<LayerMatching>12=17</LayerMatching>-->
+		</maplayer>
+		<maplayer LayerID="4" name="地形图" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="dlgOpacity" opacityname="dlgOpacity"  minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="5" name="透明地形图" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="dlgTransparent" opacityname="dlgTransparent" minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="6" name="巡线缓冲区" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="bufferzone" opacityname="bufferzone"  minlayernum="10" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="7" name="管道" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="pipeline" opacityname="pipeline" minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="8" name="外供电线路" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="powerline" opacityname="powerline" minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="9" name="里程桩" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="MileStakes" opacityname="MileStakes"  minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="10" name="加密桩" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="ThickStakes" opacityname="ThickStakes"  minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="11" name="拐角桩" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="TurningStakes" opacityname="TurningStakes"  minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="12" name="穿越桩" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="CrossingStakes" opacityname="CrossingStakes"  minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="13" name="重点部位" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="importantpoints" opacityname="importantpoints"  minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="14" name="光缆接头桩" Display="false" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="FiberCableJoint" opacityname="FiberCableJoint"  minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="15" name="三桩一牌" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="sanzhuangyipai" opacityname="sanzhuangyipai"  minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="16" name="gyx" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="gyx" opacityname="gyx" minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+		<maplayer LayerID="17" name="gyx_buffer" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="gyx_buffer" opacityname="gyx_buffer" minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+                <maplayer LayerID="18" name="柳州里程桩" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="LZ_LCZ" opacityname="LZ_LCZ" minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+                <maplayer LayerID="19" name="柳州加密桩" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="LZ_JMZ" opacityname="LZ_JMZ" minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+                <maplayer LayerID="20" name="柳州拐角桩" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="LZ_GJZ" opacityname="LZ_GJZ" minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>
+                <maplayer LayerID="21" name="柳州警示牌" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="LZ_JSP" opacityname="LZ_JSP" minlayernum="9" maxlayernum="12"></CutMapLayer>
+		</maplayer>		
+		<maplayer LayerID="22" name="湛北管道" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="ZB_pipe" opacityname="ZB_pipe" minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>	
+		 <maplayer LayerID="23" name="新增外供电线路" Display="true" layerclass="CutMap" titleLayerClass="0" url="http://10.175.2.91:81/">
+			<CutMapLayer name="powerline_add" opacityname="powerline_add" minlayernum="1" maxlayernum="12"></CutMapLayer>
+		</maplayer>	
+	</MapLayerConfig>
+</MapConfig>

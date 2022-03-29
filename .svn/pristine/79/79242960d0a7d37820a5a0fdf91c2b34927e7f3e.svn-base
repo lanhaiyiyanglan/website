@@ -1,0 +1,59 @@
+<style scoped lang="less">
+@import 'login.less';
+</style>
+<template>
+  <div class="login">
+    <div class='header'>系统登录</div>
+    <div class="loginBox">
+      <div class="nameBox">
+        <span class='lable'>用户名</span>
+        <input
+          class='userName'
+          type='text'
+        ></input>
+      </div>
+      <div class="passwordBox">
+        <span class='lable'>密码</span>
+        <input
+          class='password'
+          type='password'
+        ></input>
+      </div>
+      <div class="btn">
+        <span
+          class='submit'
+          @click="loginFun"
+        >登录</span>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+export default {
+  components: {},
+  data() {
+    return {};
+  },
+  computed: {},
+  methods: {
+    loginFun() {
+      this.$router.push({
+        path: `/1301000000`,
+      });
+    },
+  },
+  watch: {
+    $route(to, from) {
+      if (to.path.indexOf('engine') >= 0) {
+      } else {
+      }
+    },
+  },
+  beforeMount() {},
+  beforeDestroy() {},
+  created() {},
+  mounted() {},
+};
+</script>
+<style scoped>
+</style>

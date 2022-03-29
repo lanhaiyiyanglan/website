@@ -1,0 +1,1051 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" " http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--saved from url=(0017) http://10.0.0.42/-->
+<html xmlns=" http://www.w3.org/1999/xhtml">
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<head>
+<style type="text/css">
+* {
+	font-size: 12px;
+}
+
+.table_layer {
+	width: 98%;
+	height: 100%;
+	border-top: 1px solid #e3f1fe;
+	border-right: 1px solid #e3f1fe;
+	margin: 1px auto;
+	border-collapse: collapse;
+}
+
+.table_layer caption {
+	color: #9ba9b4;
+	font-size: 12px;
+	padding: 0px;
+	margin: 1px 0 0 0;
+	margin-bottom: 0;
+	caption-side: top;
+	text-align: center;
+}
+
+.table_layer tr.odd td,.table_layer tr.odd .column1 {
+	background: #f4f9fe;
+	text-align: center;
+}
+
+.table_layer .column1 {
+	background: #f9fcfe;
+	text-align: center;
+}
+
+.table_layer td {
+	color: #678197;
+	border-bottom: 1px solid #e3f1fe;
+	border-left: 1px solid #e5eff8;
+	padding: 3px 1px;
+	text-align: center;
+}
+
+.table_layer th {
+	font-weight: normal;
+	color: #678197;
+	text-align: left;
+	border-bottom: 1px solid #e3f1fe;
+	border-left: 1px solid #e5eff8;
+	padding: 3px 1px;
+}
+
+.table_layer thead th {
+	background: #f4f9fe;
+	text-align: center;
+	font: bold;
+	color: #66a3d3
+}
+
+.table_layer tfoot th {
+	background: #f4f9fe;
+	text-align: center;
+}
+
+.table_layer tfoot th strong {
+	margin: 6px 6px 6px 0px;
+	color: #66a3d3;
+}
+
+.table_layer tfoot th em {
+	color: #f03b58;
+	font-weight: bold;
+	font-style: normal;
+}
+
+html,body {
+	height: 100%;
+	background-color: #181818;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}
+</style>
+<script language="javascript" type="text/javascript">
+		var controlId = null;
+    	var earth = null;
+    	var flexApp = null;
+    	var sceneLoadFlag = -1;
+
+    	function pageInit(arg1, arg2) 
+    	{
+    		controlId = arg1;
+    		flexApp = arg2;
+    	}
+    	
+	    function getParameterValue(parameterName) {
+	    	var returnValue = parameters[parameterName.toLowerCase()]; 
+	    	if(typeof(returnValue)=="undefined"){ 
+	    		return ""; 
+	    	}
+	    	else{ 
+	    		return returnValue; 
+	    	} 
+		}
+
+	    function callMethod(parameters)
+	    {
+			var m = eval(parameters[0]);
+			return m.apply(m, getMethodArguments(parameters));
+	    }
+	
+		function getMethodArguments(args1)
+		{
+			var args2 = new Array(args1.length - 1);
+			for(var i=1;i<args1.length;i++)
+			{
+				args2[i - 1] = args1[i];
+			}
+			return args2;
+		}
+
+    	function getEarth() {
+        	if (earth == null)
+        	{
+        		earth = document.all("myObj");
+        	}
+        	if (earth == null)
+        	{
+        		alert("检测到该计算机浏览器安全级别过高，请修改设置后重试！");
+        	}
+        	return earth;
+    	}
+
+	    function checkSceneLoaded()
+	    {
+	    	createOCX();
+		    return sceneLoadFlag == 0;
+	    }
+	    
+	    function testIfream()
+	    {
+	    	alert(456);
+	    }
+	    
+    	function loadScene(showDialog){
+    		alert(0);
+        	if (sceneLoadFlag != 0)
+        	{
+        		alert(1);
+    	    	if (showDialog)
+    	    	{
+    	    		sceneLoadFlag = runVirtualEarthWithDialog();
+    	    	}
+    	    	else
+    	    	{
+    	    		sceneLoadFlag = runVirtualEarth();
+    	    	} 
+        	}
+    	}
+    	
+	    function runVirtualEarth(){
+	    	var x = getEarth();
+	    	if (x != null)
+	    	{
+	    	 	x.Run3D();
+	    	 	afterRun();
+	    	 	return 0;
+	    	}
+	    	return -1;
+	    }
+
+		function runVirtualEarthByUrl(cachePath, resourceUrl){
+	    	var x = getEarth();
+	    	if (x != null)
+	    	{
+				x.Run3DByUrl(cachePath,resourceUrl,"OFF");		
+				afterRun();    	
+				return 0;
+	    	}
+	    	return -1;
+		 }
+
+	    //显示配置对话框。
+	    function runVirtualEarthWithDialog()
+	    {
+			var x = getEarth();
+			if (x != null)
+			{
+				var result = x.Run3DWithDlg();
+				if (result == 0)
+				{
+					afterRun();
+				}
+				return result;
+			}
+			return -1;
+	    }
+
+		function afterRun() {
+			if (flexApp != null)
+			{
+				flexApp.runEarth(controlId);	
+			}	
+		}
+
+	    //设置场景状态。
+	    function setSceneState(stateName)
+	    {
+		       var x = getEarth();
+				if (x != null)
+				{
+					x.Connector("<命令 命令名='"+stateName+"'></命令>");	
+				}
+	    }
+	    
+	    function setEarthBounds(l, t, w, h){
+	    	var x = getEarth();
+	    	if (x != null)
+	    	{
+		    	x.left = l;
+		    	x.top = t;
+		    	x.width = w;
+		    	x.height = h;
+	    	}
+	    }
+
+	    //注册回调函数。
+	    function registerCallback(eventType, eventFlags, callback)
+	    {
+	    	var x = getEarth();
+	    	if (x != null)
+	    	{
+		    	if (typeof callback == "string")
+		    	{
+		    		callback = eval(callback);
+		    	}
+	    		x.RegCallback(parseInt(eventType, 16), callback, parseInt(eventFlags, 16));
+	    	}
+	    }
+
+	    //卸载回调函数注册。
+	    function unRegisterCallback(eventType)
+	    {
+	    	var x = getEarth();
+	    	if (x != null)
+	    	{
+	    		x.UnRegCallback(parseInt(eventType, 16));
+	    	}		    
+	    }
+	    
+	    //显示关于对话框。
+	    function showAboutDialog()
+	    {
+			var x = getEarth();
+			if (x != null)
+			{
+	    		x.AboutBox();
+			}
+	    }
+		
+		//打开/关闭鹰眼图    NavigationMap
+	    function navigationMap(status){
+			var x = getEarth();
+			if (x != null){
+				x.Connector("<命令 命令名='挂件显隐' 类型='NavigationMap | FocusCross | ControlPanel | NorthNeedle | HintBar' 显隐='"+status+"' />");
+			}
+		}	  	 
+
+	    //显示桌面推演对话框。
+	    function showDeskTestDialog()
+	    {
+			   var x = getEarth();	
+			   x.Connector("<命令 命令名='编辑对话框' 类型='桌面推演'></命令>");
+	    }	  
+	    
+	    //取得相机位置。
+	    function getCameraInfo() {
+		       var x = getEarth();
+				if (x != null)
+				{		       
+				   var s = x.Connector("<命令 命令名='获取相机位置'></命令>");	
+				   return s;	
+				}  
+				return "";  
+	    }
+
+	    //设置相机位置。
+	    function setCameraInfo(longitude, latitude, altitude, heading, tilt, roll){
+	        var x = getEarth();
+	        if (x != null)
+			{	
+		        x.Connector("<命令 命令名='设置相机位置'  经度='"+longitude+"' 纬度='"+latitude+"' 海拔='"+altitude+"' 偏航角='"+tilt+"' 俯仰角='"+heading+"' 滚转角='"+roll+"' 定位方式='普通'></命令>");
+			}
+	    }
+	    	    
+	    //播放动画。
+	    function playAction(script, showPalyControl) {
+			var x = getEarth();
+			if (x != null)
+			{			   
+				x.Connector("<命令 命令名='动画' 类型='播放' 脚本名='"+script+"' 播放器='" + showPalyControl +"'></命令>");
+			}
+		}
+
+	    //暂停或继续动画。
+	    function pauseOrContinueAction() {
+      	   var x = getEarth();
+			if (x != null)
+			{	      	   
+   		   x.Connector("<命令 命令名='动画' 类型='暂停/继续'></命令>");
+			}		    
+	    }
+
+	    //停止动画。
+	    function stopAction() {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+	           x.Connector("<命令 命令名='动画' 类型='停止'></命令>");		
+				}    
+	    }   
+
+	 	//显示播放控制对话框。
+	    function showPlayControlDialog() {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+	           x.Connector("<命令 命令名='动画' 类型='播放控制'></命令>");		
+				} 
+	    }
+
+	    //播放音乐。
+	    function playMusic(music, level, mode) {
+			var x = getEarth();
+			if (x != null)
+			{			   
+				x.Connector("<命令 命令名='音频' 文件='"+music+"' 音量='"+level+"' 模式='"+mode+"'></命令>");
+			}
+		}
+
+	    //暂停或继续音乐。
+	    function pauseOrContinueMusic() {
+      	   var x = getEarth();
+			if (x != null)
+			{	      	   
+   		   x.Connector("<命令 命令名='音频' 类型='暂停/继续'></命令>");
+			}		    
+	    }
+
+	    //停止音乐。
+	    function stopMusic() {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+					x.Connector("<命令 命令名='音频' 操作='结束' />");	
+				}    
+	    }	 
+
+	    function beginCapture(x, y, width, height, savePath) {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+					x.Connector("<命令 命令名='抓图' 动作类型='开始' 保存路径='"+savePath+"' 范围='"+x+","+y+","+width+","+height+"' 高度=''/>");	
+				}  		    
+	    }
+
+	    function endCapture() {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+					x.Connector("<命令 命令名='抓图' 动作类型='停止'/>");	
+				}  		    
+	    }
+
+	    function setBreakerState(objectId, state) {
+	           var x = getEarth();
+				if (x != null)
+				{		      
+					var s = "<命令 命令名='开关闸' 类型='"+state+"' ID='"+objectId+"'></命令>";     
+					x.Connector(s);	
+				}  		    
+	    }
+
+	    function updateDynamicText(objectId, text, fontSize) {
+	           var x = getEarth();
+				if (x != null)
+				{
+					x.Connector("<命令 命令名='文字刷新' ID='"+objectId+"' 内容='"+text+"' 字号='"+fontSize+"'></命令>");	
+				}  		    
+	    }
+	    	    
+	    function drawGeometry(geometryTypeName) {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+					x.Connector("<命令 命令名='自画模型模式'  企业ID='' 对象ID='' 操作类型='"+geometryTypeName+"' />");	
+				}  		    
+	    }
+
+	    function measure3D() {
+	           var x = getEarth();
+				if (x != null)
+				{		       
+					x.Connector("<命令 命令名='编辑对话框' 类型='测量'></命令>");	
+				}  	 		    
+	    }
+
+	    function addLayer(layerName) {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+					x.Connector("<命令 命令名='企业列表' 动作类型='添加' 企业ID='' 名称='"+layerName+"'/>");	
+				} 		    
+	    }
+
+	    function renameLayer(layerName, newLayerName) {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+					x.Connector("<命令 命令名='企业列表' 动作类型='修改' 企业ID='' 名称='"+layerName+"' 新名称='"+newLayerName+"'/>");	
+				} 		    
+	    }
+
+	    function deleteLayer(layerName) {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+					x.Connector("<命令 命令名='企业列表' 动作类型='删除' 企业ID='' 名称='"+layerName+"'/>");	
+				} 			    
+	    }
+	    
+	  	//显示状态栏。HintBar 临时借用
+		function showStatusBar(){
+	           var x = getEarth();
+				if (x != null)
+				{
+					x.Connector("<命令 命令名='挂件显隐' 类型='ControlPanel' 显隐='ON'></命令>");
+				}
+		}
+
+		//隐藏状态栏。HintBar 临时借用
+		function hidenStatusBar(){
+	           var x = getEarth();
+				if (x != null)
+				{
+					x.Connector("<命令 命令名='挂件显隐' 类型='ControlPanel' 显隐='OFF'></命令>");
+				}
+		}
+	
+	    //取得动画列表。
+	    function getActionList() {
+	           var x = getEarth();
+				if (x != null)
+				{		           
+               var r=x.Connector("<命令 命令名='动画' 类型='动画列表'></命令>");		 
+               return r;   
+				}
+				return "";
+	    }
+
+	    //定位对象。
+	    function locateObject(objectId) {
+			   var x = getEarth();
+				if (x != null)
+				{				   
+			   x.Connector("<命令 命令名='显示对象定位'  ID='"+objectId+"'  定位方式='普通'></命令>");		
+				}    
+	    }
+
+	    //显示对象。
+		function showObject(objectId){
+			   var x = getEarth();
+				if (x != null)
+				{				   
+			   x.Connector("<命令 命令名='显示对象基本动作'  ID='"+objectId+"' 动作类型='显隐'  参数='1'></命令>");
+				}
+		}
+
+		//隐藏对象。
+		function hideObject(objectId){
+			   var x = getEarth();
+				if (x != null)
+				{				   
+			   x.Connector("<命令 命令名='显示对象基本动作'  ID='"+objectId+"' 动作类型='显隐'  参数='0'></命令>");
+				}
+		}
+
+		//闪烁对象。
+		function flashObject(objectId, color){
+			   var x = getEarth();
+				if (x != null)
+				{		
+					var s = "<命令 命令名='显示对象基本动作'  ID='"+objectId+"' 动作类型='闪烁'  参数='5' 颜色='"+color+"'></命令>";
+			   x.Connector(s);
+				}
+		}
+
+		//选择对象。
+		function highlightObject(objectId){
+			   var x = getEarth();
+				if (x != null)
+				{				   
+			   x.Connector("<命令 命令名='显示对象基本动作'  ID='"+objectId+"' 动作类型='选中'></命令>");
+				}
+		}
+
+		//透明对象。
+		function transparentObject(objectId, alpha){
+			   var x = getEarth();
+				if (x != null)
+				{			
+					var s = "<命令 命令名='显示对象基本动作'  ID='"+objectId+"' 动作类型='透明'  参数='"+alpha+"'></命令>";   
+					x.Connector(s);
+				}
+		}
+
+		//清除所有效果。
+		function clearEffects(objectId){
+			   var x = getEarth();
+				if (x != null)
+				{				   
+			   x.Connector("<命令 命令名='显示对象基本动作'  ID='"+objectId+"' 动作类型='清除所有效果'  参数='1'></命令>");
+				}
+		}
+
+		//取得所有对象。
+		function getObjectList(){
+			   var x = getEarth();
+				if (x != null)
+				{				   
+			   var rVal=x.Connector("<命令 命令名='返回对象列表' ID='0'></命令>");
+			   return rVal;
+				}
+				return "";
+		}
+
+		//取得企业列表。
+		function getCompanyList(){
+			   var x = getEarth();
+			   var rVal=x.Connector("<命令 命令名='返回企业列表' 对象ID='0'></命令>");
+			   return rVal;
+		}
+
+		//添加球
+		function addSphere(objectId, companyId, location, radius, slices, color, displayGrid, gridColor){
+			   var x = getEarth();	
+			   x.Connector("<命令 命令名='对象管理' 操作类型='添加' 元素类型='球' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 位置='"+location+"' 半径='"+radius+"' 球体色='"+color+"' 添加格网='"+displayGrid+"' 细化度='"+slices+"' 格网色='"+gridColor+"'></命令>");
+		}
+		
+		//添加模型。
+		function addModel(objectId, companyId, resourcePath, location, direction, scale){
+			   var x = getEarth();
+			   var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='模型' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 资源路径='"+resourcePath+"' 位置='"+location+"' 姿态='"+direction+"' 缩放='"+scale+"'></命令>";
+			   x.Connector(s);
+		}
+
+		//添加屏幕文字
+		function addScreenText(objectId, companyId, location, fontName, fontSize, fontColor, content, imagePath){
+			   var x = getEarth();
+			   var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='屏幕标注' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 内容='"+content+"' 字体='"+fontName+"' 字号='"+fontSize+"' 位置='"+location+"' 颜色='"+fontColor+"' 资源路径='"+imagePath+"'></命令>";
+			    x.Connector(s);
+		}
+
+		//添加屏幕标注
+		function addIconPlacemark(objectId, companyId, location, imagePath, imageWidth, imageHeight, fontName, fontSize, fontColor, content){
+			   var x = getEarth();	
+			    x.Connector("<命令 命令名='对象管理' 操作类型='添加' 元素类型='屏幕标注' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 内容='"+content+"' 字体='"+fontName+"' 字号='"+fontSize+"' 位置='"+location+"' 颜色='"+fontColor+"' 资源路径='"+imagePath+"' 宽='"+imageWidth+"' 高='"+imageHeight+"'></命令>");
+		}
+		
+		//添加空间文字
+		function addWorldText(objectId, companyId, location, fontSize, fontColor, content){
+			   var x = getEarth();	
+				if (x != null)
+				{
+					var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='空间文字' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 内容='"+content+"' 字号='"+fontSize+"' 位置='"+location+"' 姿态='1,0,1' 颜色='"+fontColor+"'></命令>";	   
+			   		x.Connector(s);
+				}
+		}
+
+		//添加空间图片
+		function addWorldImage(objectId, companyId, resourcePath, location, width, height){
+			   var x = getEarth();	
+			   var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='空间图片' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 资源路径='"+resourcePath+"' 位置='"+location+"' 姿态='1,0,1' 宽='"+width+"' 高='"+height+"'></命令>";
+			   x.Connector(s);
+		}
+
+		//添加屏幕窗口
+		function addScreenForm(objectId, companyId, location, width, height, backgroundColor){
+			   var x = getEarth();	
+			   x.Connector("<命令 命令名='对象管理' 操作类型='添加' 元素类型='屏幕窗口' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 位置='"+location+"' 宽='"+width+"' 高='"+height+"' 颜色='"+backgroundColor+"'></命令>");
+		}
+
+		//添加屏幕文字。必须依附一个屏幕窗口。
+		function addFormText(objectId, companyId, formId, location, fontSize, fontColor, content){
+			   var x = getEarth();	
+			   x.Connector("<命令 命令名='对象管理' 操作类型='添加' 元素类型='屏幕文字' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 窗口ID='"+formId+"' 内容='"+content+"' 字号='"+fontSize+"' 位置='"+location+"' 颜色='"+fontColor+"'></命令>");
+		}
+
+		//添加屏幕图片
+		function addFormImage(objectId, companyId, formId, resourcePath, location, width, height){
+			   var x = getEarth();
+			   var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='屏幕图片' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 窗口ID='"+formId+"' 资源路径='"+resourcePath+"' 位置='"+location+"' 宽='"+width+"' 高='"+height+"'></命令>";
+			   x.Connector(s);
+		}
+
+		function setLightPosition(location){
+			   var x = getEarth();	
+			   x.Connector("<命令 命令名='光照位置' 光照对象='地球' 位置='"+location+"'></命令>");
+		}
+		 
+		function removeObject(objectId){
+			   var x = getEarth();	
+			   x.Connector("<命令 命令名='对象管理' 操作类型='移除' 对象ID='"+objectId+"'></命令>");
+		}	
+		
+		function showWeatherDialog(){
+			   var x = getEarth();	
+			   x.Connector("<命令 命令名='编辑对话框' 类型='天气'></命令>");
+		}
+
+		//添加标牌。
+		function addScreenBalloonAtObject(objectId, bindObjectId, rows, cells, content){
+		       var x = getEarth();
+		       var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='标牌' 绑定ID='"+bindObjectId+"' 对象ID='"+objectId+"' 行列数='"+rows+","+cells+"'>"+content+"</命令>";
+			   x.Connector(s);
+		}
+		
+		//添加标牌。
+		function addScreenBalloonAtCompany(objectId, companyId, rows, cells, content){
+		       var x = getEarth();
+		       var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='标牌' 企业ID='"+companyId+"' 对象ID='"+objectId+"' 行列数='"+rows+","+cells+"'>"+content+"</命令>";
+			   x.Connector(s);
+		}
+
+		//添加标牌。
+		function addScreenBalloonAtPosition(objectId, location, rows, cells, content){
+		       var x = getEarth();
+		       var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='标牌' 位置='"+location+"' 对象ID='"+objectId+"' 行列数='"+rows+","+cells+"'>"+content+"</命令>";
+			   x.Connector(s);
+		}
+
+		function updateScreenBalloonContent(objectId, content) {
+		       var x = getEarth();
+		       var s = "<命令 命令名='对象管理' 操作类型='更新' 元素类型='标牌' ID='"+objectId+"' 内容='"+content+"'></命令>";
+			   x.Connector(s);
+		}
+
+		//------------------------------------------------------------------------
+		
+		//添加空间标牌。
+		function addWorldBalloonAtObject(objectId, bindObjectId, rows, cells, content){
+		       var x = getEarth();
+		       var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='空间标牌' 绑定ID='"+bindObjectId+"' 对象ID='"+objectId+"' 企业ID='1' 位置='0,0,0' 行列数='"+rows+","+cells+"' 背景='255,255,255,190' 边框='255,255,0,255'>"+content+"</命令>";
+			   x.Connector(s);
+		}
+		
+		//添加标牌。
+		function addWorldBalloonAtCompany(objectId, companyId, location, rows, cells, content){
+		       var x = getEarth();
+		       var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='空间标牌' 对象ID='"+objectId+"' 企业ID='"+companyId+"' 位置='"+location+"' 行列数='"+rows+","+cells+"'>"+content+"</命令>";
+			   x.Connector(s);
+		}
+		
+		//更新空间标牌
+		function updateWorldBalloonContent(objectId, content) {
+		       var x = getEarth();
+		       var s = "<命令 命令名='对象管理' 操作类型='更新' 元素类型='空间标牌' 对象ID='"+objectId+"'>" +  content + "</命令>";
+			   x.Connector(s);
+		}
+		
+		//------------------------------------------------------------------------
+		//返回站厂模型结构
+		function backModelTree(objectId)
+		{
+			var x = getEarth();	
+			var s = "<命令 命令名='返回模型结构' ID='" + objectId + "'></命令>";
+			var r=x.Connector(s);
+			return r;
+		}
+		//点选模式--名称
+		function selectByName()
+		{
+			var x = getEarth();	
+			var s = "<命令 命令名='点选模式' 模式='名称'></命令>";
+			x.Connector(s);
+		}
+		
+		//点选模式--对象
+		function selectByObject()
+		{
+			var x = getEarth();	
+			var s = "<命令 命令名='点选模式' 模式=''></命令>";
+			x.Connector(s);
+		}
+		
+		//按名称定位或显示标牌   hasBallon=1 显示。
+		function locateOrBalloonObjectByName(objectName, hasBallon)
+		{
+			var x = getEarth();	
+			var s = x.Connector("<命令 命令名='节点高亮' name='" + objectName + "' 类型='高亮' 定位='1' 属性='"+ hasBallon +"'></命令>");
+			x.Connector(s);
+		}
+		
+		//取消高亮或标牌
+		function cancleLocateOrBalloon()
+		{
+			var x = getEarth();	
+			var s = x.Connector("<命令 命令名='节点高亮' name=''  类型='取消'></命令>");
+			x.Connector(s);
+		}
+		
+		//获取杆塔id
+		function getTowerID(){
+			var x = getEarth();	
+			var r = x.Connector("<命令 命令名='返回杆塔ID'></命令>");
+			return r;
+		 }
+		
+		//杆塔定位
+		function  localeTower(objectId){
+			var x = getEarth();	
+			var r = x.Connector("<命令 命令名='杆塔定位' ID='" + objectId + "'></命令>");
+		 }
+
+		//返回点选模式
+		function  getSelectedMode(){
+			var x = getEarth();	
+			var r = x.Connector("<命令 命令名='返回点选类型'></命令>");
+			return r;
+		 }
+		
+		//------------------------------------------------------------------------
+		
+		//弹出菜单。
+		function addWinPopupMenu(objectId, lon, lat, content)
+		{
+			var x = getEarth();	
+			var s = "<命令 命令名='右键菜单' 菜单列表='"+content+"' ID='"+objectId+"' X='"+lon+"' Y='"+lat+"'></命令>";
+			var r=x.Connector(s);
+			return r;
+		}
+
+		//弹出菜单。
+		function add3DPopupMenu(objectId, lon, lat, content)
+		{
+			var x = getEarth();	
+			var s = "<命令 命令名='菜单' 列表='"+content+"' X='"+lon+"' Y='"+lat+"'></命令>";
+			var r=x.Connector(s);
+			return r;
+		}
+		
+		function addTabControlAtObject(objectId, bindObjectId, content) 
+		{
+			var x = getEarth();
+			var s = "<命令 命令名='对象管理' 操作类型='添加' 元素类型='TabCtrl' 对象ID='"+objectId+"'  绑定ID='"+bindObjectId+"'>"+content+"</命令>";
+			var r=x.Connector(s);
+			return r;			
+		}
+			
+		//添加飞行。
+		function addFly(objectId, companyId, operation, content) {
+		       var x = getEarth();
+		       var s = "<命令 命令名='飞行路径' 操作类型='"+operation+"' 企业ID='"+companyId+"' 对象ID='"+objectId+"'>";
+		       s+=content;
+		       s+="</命令>";
+			   x.Connector(s);
+		}
+
+		function pauseFly() {
+		       var x = getEarth();
+		       var s = "<命令 命令名='飞行路径' 操作类型='暂停' />";
+			   x.Connector(s);			
+		}
+
+		function continueFly() {
+		       var x = getEarth();
+		       var s = "<命令 命令名='飞行路径' 操作类型='继续' />";
+			   x.Connector(s);			
+		}
+
+		function stopFly() {
+		       var x = getEarth();
+		       var s = "<命令 命令名='飞行路径' 操作类型='结束' />";
+			   x.Connector(s);			
+		}
+		
+		//返回LOD对象列表。
+		function getLODObjectList(){
+		       var x = getEarth();	
+			   var r=x.Connector("<命令 命令名='LOD对象列表'></命令>");
+			   return r;
+		}	
+
+		//返回选中对象。
+		function getSelectedObjectList(){
+		       var x = getEarth();	
+			   var r=x.Connector("<命令 命令名='返回选中对象'></命令>");
+			   return r;
+		}
+
+		//返回当前选择对象的ID。
+		function getSelectedObjectId(){
+		       var x = getEarth();	
+			   var r=x.Connector("<命令 命令名='返回当前选择对象的ID'></命令>");	
+			   return r;
+		}
+
+		//获取相机比例。
+		function getCameraScale(){
+		       var x = getEarth();	
+			   var r=x.Connector("<命令 命令名='获取相机比例'></命令>");	
+			   return r;
+		}
+
+		//设置相机区域。
+		function setCameraScale(scale){
+		       var x = getEarth();	
+			   var r=x.Connector("<命令 命令名='设置相机区域' 比例='"+scale+"'></命令>");	
+		}
+
+		//企业定位。
+		function locateCompany(companyId){
+		       var x = getEarth();	
+			   var r=x.Connector("<命令 命令名='企业定位' 企业ID='"+companyId+"' 定位方式='普通'></命令>");	
+		}	    		
+
+		//取得菜单信息。
+		function getMenuInfo()
+		{
+			var x = getEarth();	
+			var r=x.Connector("<命令 命令名='菜单信息'></命令>");
+			return r;
+		}
+
+		//选择测试。
+		function selectObjetTest(lon, lat)
+		{
+			var x = getEarth();	
+			var r=x.Connector("<命令 命令名='命中测试' X='"+lon+"' Y='"+lat+"'></命令>");
+			return r;
+		}
+
+		//世界坐标转企业坐标。
+		function toCompanyPosition(companyId, lon, lat, alt)
+		{
+			var x = getEarth();		
+			var r=x.Connector("<命令 命令名='获取厂区坐标' 企业ID='"+companyId+"' 经度='"+lon+"' 纬度='"+lat+"' 高程='"+alt+"'></命令>");
+			return r;
+		}
+
+		//企业坐标转世界坐标。
+		function fromCompanyPosition(companyId, lon, lat, alt)
+		{
+			var x = getEarth();	
+			var r=x.Connector("<命令 命令名='获取世界坐标' 企业ID='"+companyId+"' X='"+lon+"' y='"+lat+"' z='"+alt+"'></命令>");
+			return r;
+		}
+
+		function enableRamble(enable){
+			var s = enable ? "ON" : "OFF";
+			var x = getEarth();		
+			x.Connector("<命令 命令名='漫游开关' 开关='"+enable+"'></命令>");
+		}
+		
+		//操作器切换
+		function changeRamble(oprationName){
+			   var x = getEarth();	
+				x.Connector("<命令 命令名='操作器切换' 名称='" + oprationName +"'></命令>");
+		 }
+
+		function getObjectLLA(objectId){
+			var x = getEarth();		
+			var r=x.Connector("<命令 命令名='获取对象经纬高' ID='"+objectId+"'></命令>");
+			return r;
+		}
+	
+		function getLLAFromXY(sx, sy){
+			var x = getEarth();
+			var r=x.Connector("<命令 命令名='获取经纬高' X='"+sx+"' Y='"+sy+"'></命令>");
+			return r;
+		}
+
+		function getRoomLLA(dmbm){
+			var x = getEarth();
+			var r=x.Connector("<命令 命令名='房屋坐标' 地址编码='"+dmbm+"'></命令>");
+			return r;
+		}
+		
+		function  showUnderPipe(objectId){
+			var x = getEarth();
+			var r = x.Connector("<命令 命令名='地下管线' ID='"+objectId+"' 沟槽='ON' 导管='ON'></命令>");
+		 }
+		
+		function  hideUnderPipe(objectId){
+			var x = getEarth();
+			var r = x.Connector("<命令 命令名='地下管线' ID='"+objectId+"' 沟槽='OFF' 导管='OFF'></命令>");
+		}
+
+		function setCabinetLightStatus(objectId, lightStr) {
+			var x = getEarth();	
+			var s = "<命令 命令名='机柜指示灯更新' ID='"+objectId+"' "+lightStr+"></命令>";
+			var r=x.Connector(s);
+			return r;
+		}
+		
+		function setCabinetLabel(objectId, label) {
+			var x = getEarth();	
+			var s = "<命令 命令名='机柜编号更新' ID='"+objectId+"' 编号='" + label + "'></命令>";
+			var r=x.Connector(s);
+			return r;
+		}
+
+		function setCabinetMonitorData(objectId, data, type) {
+			var x = getEarth();	
+			var s = "<命令 命令名='机柜标牌更新' 对象ID='"+objectId+"' 横向页边距='8' 纵向页边距='8'>"+data+"</命令>";
+			var r=x.Connector(s);
+			return r;
+		}
+		
+		function setSwitchStatus(objectId, status) {
+			var x = getEarth();	
+			var s = "<命令 命令名='刀闸更新' ID='"+objectId+"' 状态='"+status+"'></命令>";
+			var r=x.Connector(s);
+			return r;
+		}
+
+		function startExcavation() {
+			var x = getEarth();	 
+			var s = "<命令 命令名='挖方'  坐标='lon lat lon lat lon lat lon lat'  深度='挖方深度（正数）' ></命令>"
+			var r=x.Connector(s);
+			return r;
+		}
+
+		function cancelExcavation() {
+			var x = getEarth();	 
+			var s = "<命令 命令名='挖方'  取消挖方='Yes'></命令>"
+			var r=x.Connector(s);
+			return r;
+		}
+
+		/**
+		* 挖方分析对话框
+		*/
+		function excavationDialog() {
+			var x = getEarth();	 
+			var s = "<命令 命令名='编辑对话框' 类型='挖方分析'></命令>"
+			var r=x.Connector(s);
+			return r;
+		}
+
+		/**
+		* 地下管线对话框
+		*/
+		function underPipeDialog() {
+			var x = getEarth();	 
+			var s = "<命令 命令名='编辑对话框' 类型='管线查看'></命令>"
+			var r=x.Connector(s);
+			return r;
+		}
+
+		/**
+		* 气体扩散对话框
+		*/
+		function gasDiffuseDialog() {
+			var x = getEarth();	 
+			var s = "<命令 命令名='编辑对话框' 类型='气体扩散'></命令>"
+			var r=x.Connector(s);
+			return r;
+		}
+		
+		function validateObj(){
+				if(window.document.getElementById("myObj").object == null) { 
+					window.alert("false");
+					return false;
+				}else{
+					window.alert("true");
+					return true;
+				}
+		}
+
+		function getUserInfo(){
+			if (flexApp != null)
+			{
+				flexApp.getUserInfo("user");
+			}
+		}
+		
+		function userInfoBack(userName) 
+		{
+			alert(userName);
+		}
+		
+	    function callback1(a)
+	    {
+		    if (flexApp != null)
+		    {
+		    	flexApp.callback1(a);//必须为同名函数。
+		    } 
+	    }
+
+	    function callback2(a)
+	    {
+		    if (flexApp != null)
+		    {
+		    	flexApp.callback2(a);//必须为同名函数。
+		    } 
+	    }
+
+	    function callback3(a)
+	    {
+		    if (flexApp != null)
+		    {
+		    	flexApp.callback3(a);//必须为同名函数。
+		    } 
+	    }
+
+	    function callback4(a)
+	    {
+		    if (flexApp != null)
+		    {
+		    	flexApp.callback4(a);//必须为同名函数。
+		    } 
+	    }
+	    //判断客户端是否注册三维程序
+		function createOCX()
+		{
+		    try
+		    {
+		      //  var t = new ActiveXObject("APPCONTROLS.AppControlsCtrl.1");
+		    }
+		    catch (e)
+		    {
+		    	window.showModalDialog('downEarthSoft.htm','','dialogHeight=160px,dialogWidth=100px');
+		    }
+		} 
+  </script>
+</head>
+<body border="0" topmargin="0" leftmargin="0"
+	oncontextmenu='return false'>
+	<div style="WIDTH: 100%; HEIGHT: 100%; left: 0; top: 0;">
+		<OBJECT classid="clsid:0F4F257D-DE19-4C1B-81AA-01AFB0A89D42"
+			id="myObj" width="100%" height="100%"
+			codebase="http://localhost/cab/earth.cab" />
+	</div>
+</body>
+
+</html>

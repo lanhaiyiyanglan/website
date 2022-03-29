@@ -1,0 +1,83 @@
+export function getXmlNode(strx) {
+  var str = strx;
+  // 创建文档对象
+  var parser = new DOMParser();
+  var xmlDoc = parser.parseFromString(str, 'text/xml');
+
+  // 提取数据
+  var countrys = xmlDoc.getElementsByTagName('node');
+  return digui([countrys[0]]);
+}
+const icon = {
+  '1300000000': require('../views/images/icon/ywbb.png'),
+  '1300000000act': require('../views/images/icon/ywbb_a.png'),
+  '1301000000': require('../views/images/icon/task.png'),
+  '1301000000act': require('../views/images/icon/task_a.png'),
+  '1302000000': require('../views/images/icon/line.png'),
+  '1302000000act': require('../views/images/icon/line_a.png'),
+  '1303000000': require('../views/images/icon/sj.png'),
+  '1303000000act': require('../views/images/icon/sj_a.png'),
+};
+export function digui(arr) {
+  let newarr = [];
+  //  console.log(455454, arr,_typeof(arr))
+  if (arr && _typeof(arr)=='array'&&arr.length > 0) {
+    for (var i = 0; i < arr.length; i++) {
+      // console.log(455454,arr[i])
+      newarr.push(
+        {
+          name: arr[i].name,
+          path: String(arr[i].value),
+          node: digui(arr[i].node),
+          key: String(i),
+          icon: icon[arr[i].value],
+          iconA: icon[arr[i].value + 'act']
+        }
+      );
+    }
+  }else if(arr&&_typeof(arr)=='object'){
+    newarr.push(
+      {
+        name: arr.name,
+        path: String(arr.value),
+        node: digui(arr.node),
+        key: new Date().getTime(),
+        icon: icon[arr.value],
+        iconA: icon[arr.value + 'act']
+      }
+    );
+  }
+  return newarr;
+}
+
+
+export function _typeof(data) {
+  let value = /\[object (\w+)\]/.exec(
+      Object.prototype.toString.call(data)
+  );
+  return value ? value[1].toLowerCase() : '';
+}
+
+
+export function tableToExcel(id, excelName) {
+  var uri = 'data:application/vnd.ms-excel;base64,'
+    , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{worksheet}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table>{table}</table></body></html>'
+    , base64 = function (s) { return window.btoa(unescape(encodeURIComponent(s))) }
+    , format = function (s, c) { return s.replace(/{(\w+)}/g, function (m, p) { return c[p]; }) }
+
+  //根据ID获取table表格HTML
+  var table = document.getElementById(id);
+  console.log(454554, table)
+  var ctx = { worksheet: 'Worksheet', table: table.innerHTML };
+
+
+  const a = document.createElement('a'); // 创建a标签
+  a.setAttribute('download', excelName + '.xls');// download属性
+  a.setAttribute('href', uri + base64(format(template, ctx)));// href链接
+  a.click();// 自执行点击事件
+
+
+  // document.getElementById("exportA").href = uri + base64(format(template, ctx));
+  // document.getElementById("exportA").download = excelName + '.xls';
+
+}

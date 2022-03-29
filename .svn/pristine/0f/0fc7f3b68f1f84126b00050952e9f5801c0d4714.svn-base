@@ -1,0 +1,600 @@
+<template>
+  <div class="addList">
+    <div class='addTable'>
+      <div class='title'>
+        {{title}}
+        <span
+          class="close"
+          @click="cancel"
+        >{{"×"}}</span>
+      </div>
+      <div class="formbox">
+        <el-form
+          ref="ruleForm"
+          :model="form"
+          label-width="130px"
+          :rules="rules"
+        >
+          <el-form-item label="输油处：" prop="pgroupCode">
+               <el-select
+                    size="small"
+                    v-model="form.gpsInspectionLog.pgroupCode"
+                    placeholder="请选择输油处"
+                    @change='changePlace'
+                    :disabled="flag == 0?true:false"
+                    >
+                    <el-option
+                        v-for='item in placelist'
+                        :key='item.GROUPCODE'
+                        :label="item.GROUPNAME"
+                        :value="item.GROUPCODE"
+                    ></el-option>
+                </el-select>
+          </el-form-item>
+
+          <el-form-item label="输油站：" prop="groupCode">
+            <el-select
+                size="small"
+                v-model="form.gpsInspectionLog.groupCode"
+                placeholder="请选择输油站"
+                @change="getPerson"
+                :disabled="flag == 0?true:false"
+                >
+                <el-option
+                    v-for='item in stationlist'
+                    :key='item.GROUPCODE'
+                    :label="item.GROUPNAME"
+                    :value="item.GROUPCODE"
+                ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="巡线员：" prop="userId">
+            <el-select
+                size="small"
+                v-model="form.gpsInspectionLog.userId"
+                placeholder="巡线员"
+                :disabled="flag == 0?true:false"
+                >
+                <el-option
+                    v-for='item in userlist'
+                    :key='item.PERSON_ID'
+                    :label="item.PERSON_NAME"
+                    :value="item.PERSON_ID"
+                ></el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item label="巡线日期：" class="small" prop="inspectionDate">
+                  <el-date-picker
+                    v-model="form.gpsInspectionLog.inspectionDate"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    :disabled="flag == 0?true:false"
+                    placeholder="选择日期">
+                  </el-date-picker>
+          </el-form-item>
+          <el-form-item label="填报日期：" prop="inputDate">
+              <el-date-picker
+                    v-model="form.gpsInspectionLog.inputDate"
+                    type="date"
+                    value-format="yyyy-MM-dd"
+                    :disabled="flag == 0?true:false"
+                    placeholder="选择日期">
+                  </el-date-picker>
+          </el-form-item>
+
+          <el-form-item label="巡线日志：" class="el-form-item2" prop="inspectionContent">
+                  <el-input type="textarea" v-model="form.gpsInspectionLog.inspectionContent" :disabled="flag == 0?true:false"></el-input>
+          </el-form-item>
+          
+          <el-form-item label="巡线照片：">
+             <el-upload
+                action="#"
+                :file-list="form.fileList"
+                :multiple="false"
+                :auto-upload="false"
+                list-type="picture-card"
+                :on-change="handleChange"
+                 :on-remove="handleRemove"
+                :limit=limitNum
+                 :class="{hide:hideUploadEdit}" 
+                :before-upload="handleBeforeUpload"
+                :disabled="flag == 0?true:false"
+                >
+                  <i slot="default" class="el-icon-plus"></i>
+                  <div slot="file" slot-scope="{file}">
+                    <img
+                      class="el-upload-list__item-thumbnail"
+                      :src="file.url" alt=""
+                    >
+                      <span
+                        v-if="!disabled"
+                        class="el-upload-list__item-delete"
+                      >
+                        <i class="el-icon-delete"></i>
+                      </span>
+                  </div>
+              </el-upload>
+          </el-form-item>
+
+           <el-form-item label="审核意见：" prop="reviewComment">
+                <el-input type="textarea" v-model="form.gpsInspectionLog.reviewComment" :disabled="flag == 0?true:false"></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template v-if="flag==1">
+          <div class='confirm' >
+            <span class="add" @click="submit('ruleForm')">确认</span>
+            <span class="close" @click="cancel">取消</span>
+          </div>
+      </template>
+    </div>
+  </div>
+
+</template>
+
+<script>
+export default {
+  name: 'detailInspectionlog',
+  props: ['title','formobj','flag'],
+  data() {
+    return {
+      form:{
+        "gpsInspectionLog": {
+          "inspectionLogId":"",//日志id
+          "groupCode":"",//输油站id
+          "groupName":"",//输油站name
+          "pgroupCode": "",//输油处id
+          "pgroupName":"",//输油处name
+          "userId": "",//巡线员id
+          "userName":"",//巡线员name
+          "inspectionDate": "",//巡线日期,
+          "inputDate":"",//填报日期
+          "inspectionContent": "",//巡线日志
+          "state":"",//状态
+          "reviewComment": "",//审核意见
+          "remark":"",//备注
+          "reviewUserId":"",//审核人 
+          "reviewDate":""//审核日期
+        },
+        "fileList": []
+      },
+      placelist:[],
+      stationlist:[],
+      userlist:[],
+      disabled: false,
+      formDate:"",
+      limitNum: 8,
+      hideUploadEdit: false, // 隐藏'上传按钮'
+      rules: {
+        pgroupCode:[{required: true,trigger: 'change',
+             validator:(rule, value, callback) => {
+                if (this.form.gpsInspectionLog.pgroupCode=="") {
+                  callback(new Error("请选择输油处"));
+                } else {
+                  callback();
+                }
+              } 
+        }],
+        groupCode:[{required: true, trigger: 'change',
+             validator:(rule, value, callback) => {
+                if (this.form.gpsInspectionLog.groupCode=="") {
+                  callback(new Error("请选择输油站"));
+                } else {
+                  callback();
+                }
+              } 
+        }],
+        userId:[{required: true,trigger: 'change',
+             validator:(rule, value, callback) => {
+                if (this.form.gpsInspectionLog.userId=="") {
+                  callback(new Error("请选择巡线员"));
+                } else {
+                  callback();
+                }
+              } 
+        }],
+        inspectionDate:[{required: true, trigger: 'change',
+             validator:(rule, value, callback) => {
+                if (this.form.gpsInspectionLog.inspectionDate=="") {
+                  callback(new Error("请选择巡线日期"));
+                } else {
+                  callback();
+                }
+              } 
+        }],
+        inputDate:[{required: true,trigger: 'change',
+            validator:(rule, value, callback) => {
+                if (this.form.gpsInspectionLog.inputDate=="") {
+                  callback(new Error("请选择填报日期"));
+                } else {
+                  callback();
+                }
+              } 
+        }],
+        inspectionContent:[{required: true,trigger: 'blur' ,
+            validator:(rule, value, callback) => {
+                if (this.form.gpsInspectionLog.inspectionContent=="") {
+                  callback(new Error("请填写巡线日志"));
+                } else {
+                  callback();
+                }
+              } 
+        }],
+        reviewComment:[{required: true,trigger: 'blur',
+           validator:(rule, value, callback) => {
+                if (this.form.gpsInspectionLog.reviewComment=="") {
+                  callback(new Error("请填写审核意见"));
+                } else {
+                  callback();
+                }
+              } 
+        }],
+      }
+    };
+  },
+   created() {
+    if(this.title=="修改巡检日志"||this.title=="查看巡检日志"){
+        this.form.gpsInspectionLog=this.formobj.gpsInspectionLog;
+        if(this.formobj.fileList){
+         this.form.fileList=this.formobj.fileList.map((v)=>{
+               return {
+                 name:v.fileName,
+                 url:"data:image/"+v.fileType.substring(6)+";base64,"+v.fileContent,
+                 type:v.fileType
+               }
+          })
+        }
+    }
+    if(this.title=="查看巡检日志"){
+      this.hideUploadEdit=true;
+    }
+  },
+  mounted() {
+    this.getAllArea();//获取输油处
+    this.changePlace(this.form.gpsInspectionLog.pgroupCode);//根据输油处获取输油站
+    this.getPerson(this.form.gpsInspectionLog.groupCode);
+  },
+  methods:{
+     //获取输油处
+   getAllArea(){
+      this.$myHttp.get('pipe/getAreaList?userId=' + sessionStorage.getItem('userId')).then((res) => {
+          this.placelist = res.result;
+      });
+   },
+    //获取输油站
+   changePlace(val){
+       // this.form.STATIONNAME="";
+        this.$myHttp.get('pipe/getStationList?userId=' +sessionStorage.getItem('userId') +'&groupCode=' +val).then((res) => {
+          this.stationlist = res.result;
+        });
+   },
+   getPerson(e){
+     let clientType="Meitrack";
+     this.$myHttp.get('gpsGroups/getPersonList?userId=' + sessionStorage.getItem('userId')+'&areaId='+this.form.gpsInspectionLog.pgroupCode+'&stationId='+e+'&clientType='+clientType).then((res) => {
+          this.userlist= res.result;
+     });
+   },
+   async handleRemove(file,fileList) {
+     this.form.fileList=await this.getFile(fileList);
+     this.hideUploadEdit = fileList.length >= this.limitNum;
+  },
+   cancel(){
+        this.$emit('close');
+   },
+  async handleChange(file,fileList){
+     this.form.fileList=await this.getFile(fileList);
+      this.hideUploadEdit = fileList.length >= this.limitNum;
+   },
+   getFile(fileList){
+      let that=this;
+      return new Promise(function (resolve, reject) {
+        let jsonData = []
+        fileList.map((v)=>{
+           if(v.raw){
+              let reader = new FileReader();
+              reader.readAsDataURL(v.raw);
+              reader.onload = function (e) {
+                  jsonData.push({
+                    "url":e.target.result,
+                    "name":that.getTime()+Math.floor((Math.random() * 1000) + 1)+"."+v.raw.type.substring(6),
+                    "type":"."+v.raw.type.substring(6)
+                  });
+              }
+           }else{
+                  jsonData.push({
+                    "url":v.url,
+                    "name":v.name,
+                    "type":v.type,
+                  });
+           }
+        })
+        resolve(jsonData);
+      })
+   },
+  submit(formName) {
+     this.$refs[formName].validate((valid) => {
+        if (valid) {
+          console.log(this.form.fileList);
+            let files=this.form.fileList.map((v)=>{
+              if(v.url.indexOf("data:image/")==0){
+                return{
+                   "fileContent":v.url.substring(v.url.indexOf(',')+1),
+                    "fileName":v.name,
+                    "fileType":v.type
+                }
+              }else{
+                    return {
+                      "fileContent":v.url,
+                      "fileName":v.name,
+                      "fileType":v.type
+                    }
+              }
+            })
+            this.userlist.map((v)=>{
+              if(this.form.gpsInspectionLog.userId==v.PERSON_ID){
+                 this.form.gpsInspectionLog.userName=v.PERSON_NAME
+              }
+            })
+            let obj={
+              "files":files,
+              "groupCode":this.form.gpsInspectionLog.groupCode,
+              "groupName":this.form.gpsInspectionLog.groupName,
+              "inputDate":this.form.gpsInspectionLog.inputDate,
+              "inspectionContent":this.form.gpsInspectionLog.inspectionContent,
+              "inspectionDate":this.form.gpsInspectionLog.inspectionDate,
+              "inspectionLogId":this.form.gpsInspectionLog.inspectionLogId,
+              "pgroupCode":this.form.gpsInspectionLog.pgroupCode,
+              "pgroupName":this.form.gpsInspectionLog.pgroupName,
+              "remark":this.form.gpsInspectionLog.remark,
+              "userId":this.form.gpsInspectionLog.userId,
+              "userName":this.form.gpsInspectionLog.userName,
+              "reviewComment":this.form.gpsInspectionLog.reviewComment
+            }
+            this.$emit('sub',obj);
+        }
+     })
+   },
+   getTime(){
+            let time = new Date();
+            let year = time.getFullYear();
+            let mouth = time.getMonth() + 1;
+            let day = time.getDate();
+            let hours = time.getHours() + 1;
+            let minutes = time.getMinutes() + 1;
+            let seconds = time.getSeconds();
+            if (mouth < 10) {
+              mouth = "0" + mouth
+            }
+            if (day < 10) {
+              day = "0" + day
+            }
+            if (hours < 10) {
+              hours = "0" + hours
+            }
+            if (minutes < 10) {
+              minutes = "0" + minutes
+            }
+            if (seconds < 10) {
+              seconds = "0" + seconds
+            }
+            return `${year}${mouth}${day}${hours}${minutes}${seconds}`
+   },
+     // 上传文件之前的钩子
+    handleBeforeUpload(file){
+      if(!(file.type === 'image/png' || file.type === 'image/gif' || file.type === 'image/jpg' || file.type === 'image/jpeg')) {
+        window.vm.$message({
+            type: 'error',
+            message: '请上传格式为image/png, image/gif, image/jpg, image/jpeg的图片',
+            showClose: true,
+            duration: 2000,
+        });
+      }
+      let size = file.size / 1024 / 1024 / 2
+      if(size > 2) {
+        window.vm.$message({
+            type: 'error',
+            message: '图片大小必须小于2M',
+            showClose: true,
+            duration: 2000,
+        });
+      }
+    },
+  }
+};
+</script>
+
+<style lang="less" scoped>
+.addList {
+  position: absolute;
+  z-index: 2;
+  left:0;top:0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  .addTable {
+    width: 80%;
+    margin-left: 10%;
+    height: 38rem;
+    background: #000000;
+    .title {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      border-bottom: 1px solid #ccc;
+      color: #3baaaf;font-size:16px;
+      .close {
+        position: absolute;
+        height: 30px;
+        line-height: 30px;
+        width: 30px;
+        right: 15px;
+        top: 15px;
+        font-size: 25px;
+        cursor: pointer;
+      }
+    }
+    .tr {
+      height: 45px;
+      padding: 5px;
+      .lable {
+        float: left;
+        height: 30px;
+        line-height: 30px;
+        padding: 0px 15px;
+      }
+      .el-select {
+        float: left;
+        height: 30px;
+        line-height: 30px;
+        margin-right: 30px;
+      }
+      .el-select input.el-input__inner {
+        height: 30px !important;
+        line-height: 30px !important;
+        background: #1c1e2c;
+      }
+      .el-input__inner {
+        background: #1c1e2c;
+        height: 30px;
+        line-height: 30px;
+      }
+    }
+    table {
+      display: inline-block;
+      width: 100%;
+      height: calc(~'(100% - 150px)');
+      overflow-y: auto;
+      border-collapse: collapse;
+      thead {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          margin: 0;
+          padding: 0;
+          th {
+            float: left;
+            padding: 0;
+            margin: 0;
+            height: 2rem;
+            line-height: 2rem;
+            border: 1px solid #1e727e;
+            font-size: 18px;
+          }
+        }
+      }
+      tbody {
+        display: inline-block;
+        width: 100%;
+        tr {
+          display: inline-block;
+          width: 100%;
+          td {
+            float: left;
+            padding: 0;
+            margin: 0;
+            height: 1.6rem;
+            line-height: 1.6rem;
+            border: 1px solid #1e727e;
+            text-align: center;
+            overflow: hidden; /*超出部分隐藏*/
+            white-space: nowrap; /*不换行*/
+            text-overflow: ellipsis; /*超出部分文字以...显示*/
+          }
+        }
+      }
+    }
+    .confirm {
+      position: relative;
+      height: 60px;
+      line-height: 60px;
+      text-align: center;
+      background: #252932;
+      color: #3baaaf;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      .close {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+        margin-left: 20px;
+      }
+      .add {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        width: 60px;
+        font-size: 16px;
+        cursor: pointer;
+        color: #3baaaf;
+        border: 1px solid #3baaaf;
+        border-radius: 5px;
+      }
+    }
+  }
+}
+.formbox {
+  overflow: hidden;
+  padding: 20px;
+  box-sizing: border-box;
+   .el-form-item2 {
+    float: left;
+    width: 100%;
+    .el-select {
+      width: 100%;
+    }
+   }
+  .el-form-item {
+    float: left;
+    width: 100%;
+    .el-select {
+      width: 100%;
+    }
+    .addBtn {
+      display: inline-block;
+      text-align: center;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      background: #777;
+      color: #fff;
+      font-size: 20px;
+      margin-left: 20px;
+      cursor: pointer;
+    }
+
+    .level1 {
+      // padding-left: 30px;
+      min-height: 30px;
+      span {
+        display: inline-block;
+        height: 30px;
+        line-height: 30px;
+        padding: 0 15px;
+        border-radius: 15px;
+        border: 1px solid #ccc;
+        min-width: 50px;
+        margin-right: 20px;
+        margin-bottom: 20px;
+        cursor: pointer;
+      }
+    }
+  }
+  .w100 {
+    width: 100%;
+  }
+}
+</style>
+
+
+
